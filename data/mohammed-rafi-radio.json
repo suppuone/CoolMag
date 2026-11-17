@@ -1,0 +1,14 @@
+{
+  "stationuuid": "https://stream.zeno.fm/2xx62x8ztm0uv",
+  "name": "Mohammed Rafi Hits",
+  "url": "https://stream.zeno.fm/2xx62x8ztm0uv",
+  "url_resolved": "https://stream.zeno.fm/2xx62x8ztm0uv",
+  "logo": "assets/station-logos/mohammed-rafi-hits.png",
+  "favicon": "assets/station-logos/mohammed-rafi-hits.png",
+  "fallbackLogo": "assets/station-logos/mohammed-rafi-hits.svg",
+  "country": "India",
+  "language": "hindi",
+  "languagecodes": "hi",
+  "tags": "mohammed rafi,hindi,retro,bollywood,hits,music",
+  "genre": "Music"
+}
