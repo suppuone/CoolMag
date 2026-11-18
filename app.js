@@ -566,32 +566,70 @@
     target.innerHTML=rows.map((station,index)=>`<button class="remote-key remote-preset-key ${tvCurrent()?.url===station.url?'active':''}" type="button" data-remote-preset="${index}" aria-pressed="${tvCurrent()?.url===station.url}" aria-label="Play ${safe(station.name||'TV channel')}" title="${safe(station.name||'TV channel')}">${String(index+1).padStart(2,'0')}</button>`).join('')||'<span class="empty-note">Save TV channels as presets to use quick select.</span>';
     target.querySelectorAll('[data-remote-preset]').forEach(button=>button.addEventListener('click',()=>{const station=rows[Number(button.dataset.remotePreset)];if(station)playTV(station);}));
   }
+  let tvRailBrowsing=false,tvRailSettleTimer=0;
   function renderTVRail(){
     const target=$('tv-rail');if(!target)return;const rows=currentRows('tv');const playing=tvCurrent();if(playing&&!rows.some(row=>row.url===playing.url))rows.unshift(playing);
+    clearTimeout(tvRailSettleTimer);tvRailSettleTimer=0;tvRailBrowsing=false;
     const picture=$('tv-display').querySelector('.tv-picture');if(picture&&target.contains(picture))$('tv-display').prepend(picture);
-    target.innerHTML=rows.map((station,index)=>{const logo=stationLogo(station),name=station.name||'TV channel';return `<div tabindex="0" class="tv-rail-card ${tvCurrent()?.url===station.url?'active':''}" data-tv-url="${safe(station.url)}" aria-label="Play ${safe(name)}"><span class="tv-rail-logo">${logo?`<img loading="lazy" decoding="async" src="${safe(logo)}" alt="">`:`<span class="logo-fallback">${safe(initialsFor(name))}</span>`}</span><span class="tv-rail-copy"><b>${safe(name)}</b><small>${safe(station.country||station.group||'TV')}</small></span></div>`;}).join('')||'<span class="empty-note">No TV presets yet — save channels from Explore.</span>';
+    target.innerHTML=rows.map(station=>{const name=station.name||'TV channel';return `<div tabindex="0" class="tv-rail-card ${playing?.url===station.url?'active':''}" data-tv-url="${safe(station.url)}" aria-label="Play ${safe(name)}"><span class="tv-rail-copy"><b>${safe(name)}</b><small>${safe(station.country||station.group||'TV')}</small></span></div>`;}).join('')||'<span class="empty-note">No TV presets yet - save channels from Explore.</span>';
     target.querySelectorAll('[data-tv-url]').forEach(card=>card.addEventListener('click',event=>{if(event.target.closest('.tv-picture'))return;const station=rows.find(s=>s.url===card.dataset.tvUrl);if(station&&station.url!==tvCurrent()?.url)playTV(station);}));
-    if(!target.dataset.carouselReady){
-      target.addEventListener('scroll',()=>{
-        const center=target.scrollLeft+target.clientWidth/2;
-        target.querySelectorAll('.tv-rail-card').forEach(card=>{const distance=Math.abs(card.offsetLeft+card.offsetWidth/2-center);card.style.setProperty('--tv-card-scale',String(Math.max(.65,1.15-distance/450)));});
-
-      },{passive:true});target.dataset.carouselReady='true';
+    renderRemotePresets();
+    const active=target.querySelector('.tv-rail-card.active');
+    if(active&&picture&&!tvFullscreenActive){
+      active.append(picture);active.classList.add('tv-video-card');
+      const rail=target.getBoundingClientRect(),card=active.getBoundingClientRect();
+      target.scrollTo({left:target.scrollLeft+card.left-rail.left+(card.width-rail.width)/2,behavior:'instant'});
     }
-    renderRemotePresets();const active=target.querySelector('.tv-rail-card.active');if(active&&picture&&!tvFullscreenActive){active.append(picture);active.classList.add('tv-video-card');}if(active)target.scrollTo({left:Math.max(0,active.offsetLeft-(target.clientWidth-active.offsetWidth)/2),behavior:'smooth'});
     if(!target.dataset.dragReady){
-      target.addEventListener('wheel',event=>{if(Math.abs(event.deltaY)>Math.abs(event.deltaX)&&target.scrollWidth>target.clientWidth){target.scrollLeft+=event.deltaY;event.preventDefault();}},{passive:false});
+      function tuneVisibleChannel(){
+        clearTimeout(tvRailSettleTimer);tvRailSettleTimer=0;
+        if(!tvRailBrowsing||dragState)return;
+        tvRailBrowsing=false;
+        if(tvFullscreenActive||!$('tv-screen').classList.contains('active')||!target.clientWidth)return;
+        const rail=target.getBoundingClientRect(),center=rail.left+rail.width/2;
+        const card=[...target.querySelectorAll('[data-tv-url]')].find(candidate=>{
+          const bounds=candidate.getBoundingClientRect();
+          return bounds.left<=center&&center<bounds.right;
+        });
+        if(!card||card.dataset.tvUrl===tvCurrent()?.url)return;
+        const station=currentRows('tv').find(row=>row.url===card.dataset.tvUrl);
+        if(station)playTV(station);
+      }
+      function scheduleTVRailTune(){
+        if(!tvRailBrowsing)return;
+        clearTimeout(tvRailSettleTimer);
+        tvRailSettleTimer=setTimeout(tuneVisibleChannel,180);
+      }
+      target.addEventListener('scroll',scheduleTVRailTune,{passive:true});
+      target.addEventListener('scrollend',()=>{if(tvRailSettleTimer)tuneVisibleChannel();});
+      target.addEventListener('wheel',event=>{
+        if(event.ctrlKey||target.scrollWidth<=target.clientWidth)return;
+        tvRailBrowsing=true;
+        if(Math.abs(event.deltaY)>Math.abs(event.deltaX)){target.scrollLeft+=event.deltaY;event.preventDefault();}
+      },{passive:false});
       target.addEventListener('pointerdown',event=>{
         // Capturing a press on the in-picture button would send its click to the rail.
-        if(event.pointerType!=='mouse'||event.button!==0||event.target.closest('button'))return;
+        if(event.button!==0||event.target.closest('button'))return;
+        tvRailBrowsing=true;
+        if(event.pointerType!=='mouse')return;
         dragState={x:event.clientX,left:target.scrollLeft,moved:false};
         target.setPointerCapture(event.pointerId);
         target.classList.add('dragging');
       });
       target.addEventListener('pointermove',event=>{if(!dragState)return;const d=event.clientX-dragState.x;if(Math.abs(d)>4)dragState.moved=true;if(dragState.moved){target.scrollLeft=dragState.left-d;event.preventDefault();}});
-      const end=event=>{if(!dragState)return;if(dragState.moved){target.dataset.dragged='true';setTimeout(()=>delete target.dataset.dragged,120);}if(target.hasPointerCapture(event.pointerId))target.releasePointerCapture(event.pointerId);dragState=null;target.classList.remove('dragging');};
+      const end=event=>{
+        if(!dragState)return;
+        const moved=dragState.moved;
+        dragState=null;target.classList.remove('dragging');
+        if(target.hasPointerCapture(event.pointerId))target.releasePointerCapture(event.pointerId);
+        if(!moved)return;
+        target.dataset.dragged='true';
+        setTimeout(()=>delete target.dataset.dragged,120);
+        scheduleTVRailTune();
+      };
       target.addEventListener('pointerup',end);
       target.addEventListener('pointercancel',end);
+      target.addEventListener('lostpointercapture',end);
       target.addEventListener('click',event=>{
         if(target.dataset.dragged!=='true'||event.target.closest('button'))return;
         event.preventDefault();
