@@ -444,6 +444,7 @@
       const rows=currentRows('tv');const station=rows.find(row=>row.url===tvCurrent()?.url)||rows[0]||tvs.find(row=>row.url===DEFAULT_TV_CHANNEL.url);if(station)playTV(station);
     }
   }
+  let lastPlayerScreen='radio-screen';
   function setScreen(screenId,userInitiated=false){
     if(!$(screenId)?.classList.contains('screen'))return;
     const previous=document.querySelector('.screen.active')?.id;
@@ -452,7 +453,13 @@
     if(screenId==='tv-screen'&&(audio.src||radioHls))stopRadio();
     if(screenId==='radio-screen'&&(hls||youtubePlayer||youtubeHost||video.src||video.currentSrc))stopTV();
     document.querySelectorAll('.screen').forEach(node=>node.classList.toggle('active',node.id===screenId));
-    document.querySelectorAll('.nav-item').forEach(node=>node.classList.toggle('active',node.dataset.screen===screenId));
+    document.querySelectorAll('.nav-item[data-screen]').forEach(node=>node.classList.toggle('active',node.dataset.screen===screenId));
+    const playerActive=screenId==='radio-screen'||screenId==='tv-screen';
+    if(playerActive)lastPlayerScreen=screenId;
+    const playerTab=document.querySelector('[data-player-nav]');
+    playerTab.classList.toggle('active',playerActive);
+    if(playerActive)playerTab.setAttribute('aria-current','page');
+    else playerTab.removeAttribute('aria-current');
     document.querySelectorAll('[data-mode-screen]').forEach(node=>{const active=node.dataset.modeScreen===screenId;node.classList.toggle('selected',active);node.setAttribute('aria-selected',String(active));});
     $('mode-label').textContent=screenId==='radio-screen'?'◉ RADIO MODE':screenId==='tv-screen'?'▣ TV MODE':screenId==='presets-screen'?'★ YOUR PRESETS':'⌕ EXPLORE';
     if(screenId==='presets-screen')renderPresets();
@@ -1016,9 +1023,16 @@
     $('load-more-online')?.addEventListener('click',()=>{if(browserKind==='radio')discoverOnline(true);else{onlineVisibleLimit+=100;renderExplore();}});
   }
 
-  document.querySelectorAll('.nav-item').forEach(button=>button.addEventListener('click',()=>setScreen(button.dataset.screen,true)));
+  document.querySelectorAll('.nav-item[data-screen]').forEach(button=>button.addEventListener('click',()=>setScreen(button.dataset.screen,true)));
+  document.querySelector('[data-player-nav]').addEventListener('click',()=>{
+    document.querySelector('.nav-item[data-screen="'+lastPlayerScreen+'"]').click();
+  });
   document.querySelectorAll('[data-mode-screen]').forEach(button=>button.addEventListener('click',()=>setScreen(button.dataset.modeScreen,true)));
   document.querySelectorAll('[data-console-mode]').forEach(button=>button.addEventListener('click',()=>setScreen(button.dataset.consoleMode+'-screen',true)));
+  document.addEventListener('retro-sleep-expired',()=>{
+    if(currentRadioSource||radioHls||window.retroRadioMechanism?.pending)stopRadio();
+    if(hls||youtubePlayer||youtubeHost||video.src||video.currentSrc)stopTV();
+  });
   let pageSwipeStart=null,suppressPresetSwipeClickUntil=0;
   document.addEventListener('click',event=>{if(Date.now()<suppressPresetSwipeClickUntil&&event.target.closest('#presets-screen')){event.preventDefault();event.stopImmediatePropagation();}},true);
   document.querySelectorAll('.screen').forEach(screen=>{

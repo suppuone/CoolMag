@@ -2092,3 +2092,8 @@ body.broadcast-console{padding-inline:58px}
  .broadcast-console #tv-display .fullscreen-titlebar .crt-osd-channel,
  .broadcast-console #tv-display .fullscreen-titlebar #fullscreen-channel-country{font-size:9px!important}
 }
+
+/* Keep the amber buffering beacon while the separate signal meter is idle. */
+.broadcast-console .crt-module .crt-telemetry>[role="status"].is-buffering+.crt-signal-bars>i{
+ background:#626449;box-shadow:none;
+}

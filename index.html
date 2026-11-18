@@ -16,8 +16,8 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon.svg">
-  <link rel="stylesheet" href="styles.css?v=4.1.2">
-  <link rel="stylesheet" href="receiver-responsive.css?v=4.1.56">
+  <link rel="stylesheet" href="styles.css?v=4.1.3">
+  <link rel="stylesheet" href="receiver-responsive.css?v=4.1.71">
   <!-- Every new opening starts with Flowing Mesh. Settings can change this session. -->
   <script>
   window.retroV4VisualizerDefaultMesh=true;
@@ -31,7 +31,9 @@
   <script defer src="volume-knob.js?v=4.1.9"></script>
   <script defer src="tv-auto-fullscreen.js?v=3.0.163"></script>
   <script defer src="audio-meter.js?v=4.1.13"></script>
-  <script defer src="app.js?v=4.1.30"></script>
+  <script defer src="hardware-feedback.js?v=1.0.3"></script>
+  <script defer src="station-artwork.js?v=1.0.1"></script>
+  <script defer src="app.js?v=4.1.32"></script>
 </head>
 <body class="broadcast-console">
 <section class="welcome-splash-v2 tuning-splash" id="welcome-splash-v2" role="dialog" aria-modal="true" aria-labelledby="tuning-title">
@@ -51,7 +53,7 @@
     <div class="rack-handle rack-handle-left" aria-hidden="true"><i></i><i></i><span></span></div>
     <div class="rack-handle rack-handle-right" aria-hidden="true"><i></i><i></i><span></span></div>
     <div class="chassis-nameplate" aria-hidden="true"><strong>RETRO<span>RAD</span>tv</strong><span>BROADCAST MONITOR / HI-FI RECEIVER</span><small>V4.0 · STEREO CONSOLE</small></div>
-    <header class="topbar"><div class="mode-switch" role="tablist" aria-label="Media mode"><button type="button" class="mode-tab selected" data-mode-screen="radio-screen" role="tab" aria-selected="true"><span aria-hidden="true">◉</span> RADIO</button><button type="button" class="mode-tab" data-mode-screen="tv-screen" role="tab" aria-selected="false"><span aria-hidden="true">▣</span> TV</button></div>
+    <header class="topbar"><div class="mode-switch" role="tablist" aria-label="Media mode"><button type="button" class="mode-tab selected" data-mode-screen="radio-screen" role="tab" aria-selected="true" aria-hidden="true" tabindex="-1"><span aria-hidden="true">◉</span> RADIO</button><button type="button" class="mode-tab" data-mode-screen="tv-screen" role="tab" aria-selected="false" aria-hidden="true" tabindex="-1"><span aria-hidden="true">▣</span> TV</button></div>
       <div class="status-cluster"><span class="status-dot"></span><time id="clock">08:30 AM</time><span class="top-separator">•</span><span class="brand-title">CoolMag RetroRADtv v.4.0</span></div>
       
       
@@ -68,7 +70,9 @@
       
       <article class="radio-display inset-panel crt-module">
         <div class="module-legend"><span>01 / SIGNAL MONITOR</span><span>FM · DIGITAL</span></div>
+        <div class="radio-monitor-title"><span class="radio-monitor-channel">CH 01</span><b>Choose a station</b><span class="radio-monitor-details"></span></div>
         <div class="radio-art" id="radio-art"><div class="record-mark"><span class="radio-signal-icon" aria-hidden="true">◉</span><b class="radio-center-title">Choose a station</b><small class="radio-center-country">WORLD RADIO</small><div class="record-equalizer" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div>
+        <div class="crt-telemetry"><span class="radio-live-indicator" role="status">STANDBY</span><span class="crt-signal-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span><time class="crt-clock" aria-label="Local time"></time></div>
 
         <div class="playing-meta radio-news-ticker" aria-label="The Hindu and BBC World news headlines"><div class="ticker-window"><div class="ticker-track" id="radio-news-track"><span class="ticker-headline is-current">Loading the latest national news…</span></div></div></div>
         <div class="equalizer" id="equalizer" aria-label="Audio level animation"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -77,7 +81,7 @@
           <source media="(min-width: 901px)" srcset="assets/station-logos/badge.png" width="1946" height="576">
           <img src="assets/station-logos/small_badge.png" width="418" height="125" alt="COOLmag retroRadioTV" decoding="async">
         </picture>
-      <div class="monitor-transport radio-lip-transport"><button class="transport-button" id="radio-prev" title="Previous station" aria-label="Previous station">⏮</button><button class="transport-button main-play" id="radio-play" title="Play" aria-label="Play">▶</button><button class="transport-button" id="radio-next" title="Next station" aria-label="Next station">⏭</button></div><details class="module-options"><summary aria-label="Radio station options">OPTIONS</summary><div class="screen-heading"><div class="radio-heading-copy"><span class="eyebrow">RADIO</span><span class="education-note" style="color:#ff3333">ON TEST DRIVE</span></div><div class="radio-heading-tools"><button type="button" class="mini-star" id="radio-star" aria-label="Add station to presets">☆</button><label class="country-picker"><span>COUNTRY</span><select id="radio-country"><option value="all">All countries</option></select></label></div></div><div class="fine-volume"><div class="radio-volume-row" aria-label="Radio volume control"><button type="button" class="radio-volume-icon" data-radio-volume-action="mute" aria-label="Mute radio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4zM15 9a4 4 0 0 1 0 6m3-9a8 8 0 0 1 0 12"/></svg></button><label class="radio-volume-track" id="radio-volume-track" for="radio-volume"><span>VOL</span><input id="radio-volume" type="range" min="0" max="100" value="20" aria-label="Radio volume"><b id="volume-number">20</b></label><button type="button" class="radio-volume-icon" data-radio-volume-action="up" aria-label="Volume up"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4zM15 12h6m-3-3v6"/></svg></button></div><p id="tone-status" class="tone-status" role="status" aria-live="polite"></p></div></details></article>
+      <div class="monitor-transport radio-lip-transport"><button class="transport-button" id="radio-prev" title="Previous station" aria-label="Previous station" aria-hidden="true" tabindex="-1">⏮</button><button class="transport-button main-play" id="radio-play" title="Play" aria-label="Play">▶</button><button class="transport-button" id="radio-next" title="Next station" aria-label="Next station" aria-hidden="true" tabindex="-1">⏭</button><button type="button" class="mini-star cabinet-favorite" id="radio-star" aria-label="Add station to presets">☆</button><button type="button" class="cabinet-sleep" data-sleep-open aria-label="Set sleep timer"><span>Zz</span></button></div><details class="module-options"><summary aria-label="Radio station options">OPTIONS</summary><div class="screen-heading"><div class="radio-heading-copy"><span class="eyebrow">RADIO</span><span class="education-note" style="color:#ff3333">ON TEST DRIVE</span></div><div class="radio-heading-tools"><label class="country-picker"><span>COUNTRY</span><select id="radio-country"><option value="all">All countries</option></select></label></div></div><div class="fine-volume"><div class="radio-volume-row" aria-label="Radio volume control"><button type="button" class="radio-volume-icon" data-radio-volume-action="mute" aria-label="Mute radio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4zM15 9a4 4 0 0 1 0 6m3-9a8 8 0 0 1 0 12"/></svg></button><label class="radio-volume-track" id="radio-volume-track" for="radio-volume"><span>VOL</span><input id="radio-volume" type="range" min="0" max="100" value="20" aria-label="Radio volume"><b id="volume-number">20</b></label><button type="button" class="radio-volume-icon" data-radio-volume-action="up" aria-label="Volume up"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4zM15 12h6m-3-3v6"/></svg></button></div><p id="tone-status" class="tone-status" role="status" aria-live="polite"></p></div></details></article>
 
       
       
@@ -89,7 +93,7 @@
         <div class="station-status" id="radio-status" role="status">READY · SELECT A PRESET OR EXPLORE</div>
         <div class="signal-led-bar" aria-hidden="true"><span class="vfd-dash-track vfd-dash-red"></span><span class="vfd-dash-track vfd-dash-green"></span></div>
         <div class="vfd-scale" aria-hidden="true"><span>LINK / SIGNAL</span><span>−20 · −10 · 0 dB</span></div><div class="radio-tuning-window" id="radio-tuning-window" role="group" aria-label="Station tuning window"><div class="radio-tuning-scale" aria-hidden="true"><span>FM · DIGITAL</span><span>STATION TUNING</span></div><div class="radio-tuning-track" id="radio-tuning-track"></div><span class="radio-tuning-needle" aria-hidden="true"></span></div>
-      </div><div class="radio-tone-bank receiver-knobs" aria-label="Radio playback and tone controls"><div class="mini-rocker"><button type="button" class="orange-rocker" data-console-mode="tv" aria-label="Switch to TV">TV<br>RADIO</button><button type="button" class="chrome-mute" data-console-mute aria-label="Mute radio">MUTE</button></div>
+      </div><div class="radio-tone-bank receiver-knobs" aria-label="Radio playback and tone controls"><div class="mini-rocker"><button type="button" class="orange-rocker" data-console-mode="tv" aria-label="Switch to TV"><span class="rocker-paddle" aria-hidden="true"><span>TV</span><span>RADIO</span></span></button><button type="button" class="chrome-mute" data-console-mute aria-label="Mute radio">MUTE</button></div>
         <div class="radio-transport-stack">
           <div class="volume-transport" aria-label="Previous, volume and play, next">
             
@@ -126,7 +130,7 @@
         </div>
       </div><div class="receiver-matrix"><div class="module-legend"><span>03 / STATION MEMORY</span><span>01 — 50</span></div>
       <div class="memory-bank-tabs" role="group" aria-label="Radio preset banks"><button type="button" data-memory-kind="radio" data-memory-bank="0" aria-pressed="true">01–10</button><button type="button" data-memory-kind="radio" data-memory-bank="1" aria-pressed="false">11–20</button><button type="button" data-memory-kind="radio" data-memory-bank="2" aria-pressed="false">21–30</button><button type="button" data-memory-kind="radio" data-memory-bank="3" aria-pressed="false">31–40</button><button type="button" data-memory-kind="radio" data-memory-bank="4" aria-pressed="false">41–50</button></div><section class="radio-station-shortcuts" aria-label="Quick tune stations"><div id="radio-station-strip" class="radio-station-strip"></div></section>
-<div class="large-radio-tuner" aria-label="Radio station tuner"><div class="tuner-instrument"><button type="button" class="tuner-step" data-tuner-step="-1" aria-label="Tune previous station"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5v14M19 5 9 12l10 7z"/></svg></button><div class="station-tuner-dial" id="station-tuner-dial" title="Turn or drag to tune; release to select the station"><span class="station-knob" aria-hidden="true"><span class="station-knob-skirt"></span><span class="station-knob-grip"></span><span class="station-knob-cap"><i class="station-knob-indicator"></i><span class="station-knob-medallion">TUNE</span></span></span><input id="station-tuner-input" type="range" min="0" max="0" step="1" value="0" aria-label="Tune radio station" disabled></div><button type="button" class="tuner-step" data-tuner-step="1" aria-label="Tune next station"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 5v14M5 5l10 7-10 7z"/></svg></button></div><output id="station-tuner-label" for="station-tuner-input">Choose a station</output></div><div class="hardware-filter-bar" aria-label="Language and genre shortcuts"><button type="button" class="hardware-filter" data-console-filter="Tamil">TAMIL</button><button type="button" class="hardware-filter" data-console-filter="Hindi">HINDI</button><button type="button" class="hardware-filter" data-console-filter="English">ENGLISH</button><button type="button" class="hardware-filter" data-console-filter="News">NEWS</button><button type="button" class="hardware-filter" data-console-filter="Music">MUSIC</button></div>
+<div class="large-radio-tuner" aria-label="Radio station tuner"><div class="tuner-instrument"><span class="tuner-signal" aria-hidden="true">SIGNAL</span><span class="tuner-band" aria-hidden="true">BAND <small>FM /</small> <b>WEB</b></span><button type="button" class="tuner-step" data-tuner-step="-1" aria-label="Tune previous station"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5v14M19 5 9 12l10 7z"/></svg></button><div class="station-tuner-dial" id="station-tuner-dial" title="Turn or drag to tune; release to select the station"><span class="station-knob" aria-hidden="true"><span class="station-knob-skirt"></span><span class="station-knob-grip"></span><span class="station-knob-cap"><i class="station-knob-indicator"></i><span class="station-knob-medallion">TUNE</span></span></span><input id="station-tuner-input" type="range" min="0" max="0" step="1" value="0" aria-label="Tune radio station" disabled></div><button type="button" class="tuner-step" data-tuner-step="1" aria-label="Tune next station"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 5v14M5 5l10 7-10 7z"/></svg></button></div><output id="station-tuner-label" for="station-tuner-input">Choose a station</output></div><div class="hardware-filter-bar" aria-label="Language and genre shortcuts"><button type="button" class="hardware-filter" data-console-filter="Tamil">TAMIL</button><button type="button" class="hardware-filter" data-console-filter="Hindi">HINDI</button><button type="button" class="hardware-filter" data-console-filter="English">ENGLISH</button><button type="button" class="hardware-filter" data-console-filter="News">NEWS</button><button type="button" class="hardware-filter" data-console-filter="Music">MUSIC</button></div>
       </div></div></section>
 
     <section class="screen" id="tv-screen" aria-label="TV player">
@@ -137,17 +141,18 @@
         <div class="module-legend monitor-legend"><span>01 / BROADCAST MONITOR</span><span>16:9 · DIGITAL</span></div>
 
         <div class="fullscreen-titlebar"><span class="crt-osd-channel" id="v4-osd-channel">CH 01</span><b id="fullscreen-channel-name">Choose a channel</b><span id="fullscreen-channel-country">TV</span></div>
+        <div class="crt-telemetry"><span class="tv-live-indicator" role="status">STANDBY</span><span class="crt-signal-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span><time class="crt-clock" aria-label="Local time"></time></div>
         <div class="tv-picture"><video id="tv-video" playsinline controls preload="none"></video><button type="button" class="tv-inline-fullscreen" data-remote="fullscreen" aria-label="Open fullscreen with TV controls" title="Fullscreen with controls" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/></svg></button><div class="tv-placeholder" id="tv-placeholder"><span class="tv-screen-logo">RETRO<span>TV</span></span><small>SELECT A CHANNEL BELOW</small></div></div>
         <div class="fullscreen-side-controls" role="group" aria-label="Fullscreen TV controls"><div class="fullscreen-drag-handle" title="Drag controls" aria-label="Drag controls">⠿</div>
-          <button type="button" data-fullscreen-action="zoom" aria-label="Zoom to fill screen" title="Zoom in" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6M7 10h6m-3-3v6"/></svg></button>
           <button type="button" data-fullscreen-action="normal" aria-label="Zoom out to normal size" title="Zoom out" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6M7 10h6"/></svg></button>
-          <button type="button" data-fullscreen-action="home" class="fullscreen-home" aria-label="Return to TV page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5-6 6 6 6M3 11h11a6 6 0 0 1 6 6v2"/></svg><span>RETURN</span></button>
+          <button type="button" data-fullscreen-action="zoom" aria-label="Zoom to fill screen" title="Zoom in" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6M7 10h6m-3-3v6"/></svg></button>
           <button type="button" data-fullscreen-action="previous" aria-label="Previous channel" title="Previous channel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5v14M19 6l-9 6 9 6z"/></svg></button>
-          <button type="button" data-fullscreen-action="play" aria-label="Pause or play" title="Pause or play"><svg class="fs-play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 12 7-12 7z"/></svg><svg class="fs-pause-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button>
           <button type="button" data-fullscreen-action="next" aria-label="Next channel" title="Next channel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 5v14M5 6l9 6-9 6z"/></svg></button>
-<button type="button" data-fullscreen-action="vol-down" aria-label="Volume down" title="Volume down"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4zM15 12h7"/></svg></button>
-<button type="button" data-fullscreen-action="vol-up" aria-label="Volume up" title="Volume up"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4zM15 12h7m-3.5-3.5v7"/></svg></button>
+          <button type="button" data-fullscreen-action="vol-down" aria-label="Volume down" title="Volume down"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4zM15 12h7"/></svg></button>
+          <button type="button" data-fullscreen-action="vol-up" aria-label="Volume up" title="Volume up"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4zM15 12h7m-3.5-3.5v7"/></svg></button>
+          <button type="button" data-fullscreen-action="play" aria-label="Pause or play" title="Pause or play"><svg class="fs-play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 12 7-12 7z"/></svg><svg class="fs-pause-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button>
           <button type="button" data-fullscreen-action="mute" aria-label="Mute" title="Mute"><svg class="fs-sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4zM15 9a4 4 0 0 1 0 6m3-9a8 8 0 0 1 0 12"/></svg><svg class="fs-muted-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4zM15 9l6 6m0-6-6 6"/></svg></button>
+          <button type="button" data-fullscreen-action="home" class="fullscreen-home" aria-label="Return to TV page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5-6 6 6 6M3 11h11a6 6 0 0 1 6 6v2"/></svg><span>RETURN</span></button>
         </div>
         <div class="tv-rail-wrap"><div class="tv-rail" id="tv-rail" aria-label="Swipe or drag to choose a channel"></div></div>
 
@@ -155,9 +160,9 @@
           <source media="(min-width: 901px)" srcset="assets/station-logos/badge.png" width="1946" height="576">
           <img src="assets/station-logos/small_badge.png" width="418" height="125" alt="COOLmag retroRadioTV" decoding="async">
         </picture>
-      <div class="tv-actions"><button class="small-control" id="tv-prev" aria-label="Previous channel">⏮</button><button class="small-control" id="tv-toggle" aria-label="Play">▶</button><button class="small-control" id="tv-next" aria-label="Next channel">⏭</button><span class="tv-hint">SWIPE OR DRAG TO BROWSE</span></div><details class="module-options"><summary aria-label="Tv station options">OPTIONS</summary><div class="screen-heading tv-screen-heading">
+      <div class="tv-actions"><button class="small-control" id="tv-prev" aria-label="Previous channel" aria-hidden="true" tabindex="-1">⏮</button><button class="small-control" id="tv-toggle" aria-label="Play">▶</button><button class="small-control" id="tv-next" aria-label="Next channel" aria-hidden="true" tabindex="-1">⏭</button><button type="button" class="mini-star cabinet-favorite" id="tv-star" aria-label="Add channel to presets">☆</button><button type="button" class="cabinet-sleep" data-sleep-open aria-label="Set sleep timer"><span>Zz</span></button><span class="tv-hint">SWIPE OR DRAG TO BROWSE</span></div><details class="module-options"><summary aria-label="Tv station options">OPTIONS</summary><div class="screen-heading tv-screen-heading">
         <span class="eyebrow">TELEVISION</span>
-        <div class="tv-heading-tools"><button class="mini-star" id="tv-star" aria-label="Add channel to presets">☆</button><label class="country-picker"><span>COUNTRY</span><select id="tv-country"><option value="all">All countries</option></select></label></div>
+        <div class="tv-heading-tools"><label class="country-picker"><span>COUNTRY</span><select id="tv-country"><option value="all">All countries</option></select></label></div>
 
       </div><section class="remote-panel" aria-label="TV remote control">
 
@@ -189,7 +194,7 @@
           <button type="button" class="tv-neighbor-name tv-neighbor-next" id="tv-next-name" aria-label="Play next channel"><span>NEXT ›</span><b id="tv-next-name-text">—</b></button>
         </nav>
         <div class="signal-led-bar" aria-hidden="true"><span class="vfd-dash-track vfd-dash-red"></span><span class="vfd-dash-track vfd-dash-green"></span></div><div class="radio-tuning-window" id="tv-tuning-window" role="group" aria-label="Station tuning window"><div class="radio-tuning-scale" aria-hidden="true"><span>TV · DIGITAL</span><span>STATION TUNING</span></div><div class="radio-tuning-track" id="tv-tuning-track"></div><span class="radio-tuning-needle" aria-hidden="true"></span></div>
-      </div><div class="tv-hifi-deck"><div class="mini-rocker"><button type="button" class="orange-rocker" data-console-mode="radio" aria-label="Switch to Radio">TV<br>RADIO</button><button type="button" class="chrome-mute" data-console-mute aria-label="Mute TV">MUTE</button></div><div class="volume-knob-control"><label for="v4-tv-volume" class="tone-label">VOLUME</label><div class="volume-dial" id="v4-tv-volume-dial"><span class="volume-knob-scale"></span><span class="volume-knob-face"><i></i></span><input id="v4-tv-volume" class="hardware-range" type="range" min="0" max="100" value="20" aria-label="TV volume knob"></div><output id="v4-tv-volume-value" class="tone-value">20%</output></div><div class="volume-knob-control tv-tone-unavailable"><span class="tone-label">TONE</span><div class="volume-dial" title="Tone processing is available in Radio mode"><span class="volume-knob-scale"></span><span class="volume-knob-face"><i></i></span></div><small>RADIO ONLY</small></div><div class="tv-trim-legend" aria-hidden="true"><span>BASS</span><div class="tone-dial"><span class="tone-face"><i></i></span></div><span>TREBLE</span><div class="tone-dial"><span class="tone-face"><i></i></span></div></div></div><div class="remote-shortcuts"><span>03 / CHANNEL MEMORY · 01 — 50</span><div class="memory-bank-tabs" role="group" aria-label="Tv preset banks"><button type="button" data-memory-kind="tv" data-memory-bank="0" aria-pressed="true">01–10</button><button type="button" data-memory-kind="tv" data-memory-bank="1" aria-pressed="false">11–20</button><button type="button" data-memory-kind="tv" data-memory-bank="2" aria-pressed="false">21–30</button><button type="button" data-memory-kind="tv" data-memory-bank="3" aria-pressed="false">31–40</button><button type="button" data-memory-kind="tv" data-memory-bank="4" aria-pressed="false">41–50</button></div><div id="remote-presets"></div><div class="large-radio-tuner" aria-label="TV channel tuner"><div class="tuner-instrument"><button type="button" class="tuner-step" data-tuner-step="-1" aria-label="Tune previous station"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5v14M19 5 9 12l10 7z"/></svg></button><div class="station-tuner-dial" id="tv-station-tuner-dial" title="Turn or drag to tune; release to select the station"><span class="station-knob" aria-hidden="true"><span class="station-knob-skirt"></span><span class="station-knob-grip"></span><span class="station-knob-cap"><i class="station-knob-indicator"></i><span class="station-knob-medallion">TUNE</span></span></span><input id="tv-station-tuner-input" type="range" min="0" max="0" step="1" value="0" aria-label="Tune TV channel" disabled></div><button type="button" class="tuner-step" data-tuner-step="1" aria-label="Tune next station"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 5v14M5 5l10 7-10 7z"/></svg></button></div><output id="tv-station-tuner-label" for="tv-station-tuner-input">Choose a station</output></div><div class="hardware-filter-bar" aria-label="Language and genre shortcuts"><button type="button" class="hardware-filter" data-console-filter="Tamil">TAMIL</button><button type="button" class="hardware-filter" data-console-filter="Hindi">HINDI</button><button type="button" class="hardware-filter" data-console-filter="English">ENGLISH</button><button type="button" class="hardware-filter" data-console-filter="News">NEWS</button><button type="button" class="hardware-filter" data-console-filter="Music">MUSIC</button></div></div></div></section>
+      </div><div class="tv-hifi-deck"><div class="mini-rocker"><button type="button" class="orange-rocker" data-console-mode="radio" aria-label="Switch to Radio"><span class="rocker-paddle" aria-hidden="true"><span>TV</span><span>RADIO</span></span></button><button type="button" class="chrome-mute" data-console-mute aria-label="Mute TV">MUTE</button></div><div class="volume-knob-control"><label for="v4-tv-volume" class="tone-label">VOLUME</label><div class="volume-dial" id="v4-tv-volume-dial"><span class="volume-knob-scale"></span><span class="volume-knob-face"><i></i></span><input id="v4-tv-volume" class="hardware-range" type="range" min="0" max="100" value="20" aria-label="TV volume knob"></div><output id="v4-tv-volume-value" class="tone-value">20%</output></div><div class="volume-knob-control tv-tone-unavailable"><span class="tone-label">TONE</span><div class="volume-dial" title="Tone processing is available in Radio mode"><span class="volume-knob-scale"></span><span class="volume-knob-face"><i></i></span></div><small>RADIO ONLY</small></div><div class="tv-trim-legend" aria-hidden="true"><span>BASS</span><div class="tone-dial"><span class="tone-face"><i></i></span></div><span>TREBLE</span><div class="tone-dial"><span class="tone-face"><i></i></span></div></div></div><div class="remote-shortcuts"><span>03 / CHANNEL MEMORY · 01 — 50</span><div class="memory-bank-tabs" role="group" aria-label="Tv preset banks"><button type="button" data-memory-kind="tv" data-memory-bank="0" aria-pressed="true">01–10</button><button type="button" data-memory-kind="tv" data-memory-bank="1" aria-pressed="false">11–20</button><button type="button" data-memory-kind="tv" data-memory-bank="2" aria-pressed="false">21–30</button><button type="button" data-memory-kind="tv" data-memory-bank="3" aria-pressed="false">31–40</button><button type="button" data-memory-kind="tv" data-memory-bank="4" aria-pressed="false">41–50</button></div><div id="remote-presets"></div><div class="large-radio-tuner" aria-label="TV channel tuner"><div class="tuner-instrument"><span class="tuner-signal" aria-hidden="true">SIGNAL</span><span class="tuner-band" aria-hidden="true">BAND <b>WEB</b></span><button type="button" class="tuner-step" data-tuner-step="-1" aria-label="Tune previous station"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5v14M19 5 9 12l10 7z"/></svg></button><div class="station-tuner-dial" id="tv-station-tuner-dial" title="Turn or drag to tune; release to select the station"><span class="station-knob" aria-hidden="true"><span class="station-knob-skirt"></span><span class="station-knob-grip"></span><span class="station-knob-cap"><i class="station-knob-indicator"></i><span class="station-knob-medallion">TUNE</span></span></span><input id="tv-station-tuner-input" type="range" min="0" max="0" step="1" value="0" aria-label="Tune TV channel" disabled></div><button type="button" class="tuner-step" data-tuner-step="1" aria-label="Tune next station"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 5v14M5 5l10 7-10 7z"/></svg></button></div><output id="tv-station-tuner-label" for="tv-station-tuner-input">Choose a station</output></div><div class="hardware-filter-bar" aria-label="Language and genre shortcuts"><button type="button" class="hardware-filter" data-console-filter="Tamil">TAMIL</button><button type="button" class="hardware-filter" data-console-filter="Hindi">HINDI</button><button type="button" class="hardware-filter" data-console-filter="English">ENGLISH</button><button type="button" class="hardware-filter" data-console-filter="News">NEWS</button><button type="button" class="hardware-filter" data-console-filter="Music">MUSIC</button></div></div></div></section>
 
     <section class="screen" id="presets-screen" aria-label="Presets and favourites">
       <div class="screen-heading"><div><span class="eyebrow">YOUR COLLECTION</span><h1 class="screen-title">Presets &amp; Favorites</h1></div><div class="preset-priority-control" id="preset-priority-control" hidden><small id="preset-selection-label">SELECT A TV CHANNEL</small></div></div>
@@ -214,13 +219,23 @@
       <div class="explore-results" id="explore-results"></div>
     </section>
     <nav class="bottom-nav" aria-label="Main sections">
-      <button class="nav-item active" data-screen="radio-screen"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="14" rx="2"/><path d="m7 7 8-4M7 11v6m3-6v6m5-6h3M15 17h3"/></svg>RADIO</button>
-      <button class="nav-item" data-screen="tv-screen"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="m8 3 4 3 4-3m-4 16v3m-5 0h10"/><circle cx="18" cy="16" r=".7"/></svg>TV</button>
+      <button type="button" class="nav-item active" data-player-nav aria-current="page"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="14" rx="2"/><path d="m7 7 8-4M7 11v6m3-6v6m5-6h3M15 17h3"/></svg>TUNER</button>
+      <button class="nav-item active" hidden data-screen="radio-screen" aria-hidden="true" tabindex="-1"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="14" rx="2"/><path d="m7 7 8-4M7 11v6m3-6v6m5-6h3M15 17h3"/></svg>RADIO</button>
+      <button class="nav-item" data-screen="tv-screen" hidden aria-hidden="true" tabindex="-1"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="m8 3 4 3 4-3m-4 16v3m-5 0h10"/><circle cx="18" cy="16" r=".7"/></svg>TV</button>
       <button class="nav-item" data-screen="presets-screen"><span>★</span>PRESETS</button>
       <button class="nav-item" data-screen="explore-screen"><span>⌕</span>EXPLORE</button>
     </nav>
   </main>
-  <dialog class="settings-dialog" id="settings-dialog"><form method="dialog"><button class="dialog-close" aria-label="Close settings">×</button><span class="eyebrow">PERSONALISE YOUR PLAYER</span><h2>Settings</h2><div class="setting-row"><span><b>LEGACY THEME</b><small>Allow 10 taps on the Radio page to switch to the GitHub v2 look.</small></span><label class="setting-switch"><input id="legacy-theme-enabled" type="checkbox" role="switch" aria-label="Legacy theme on or off"><span class="switch-track" aria-hidden="true"></span></label></div><div class="setting-row"><span><b>THEME</b><small>Allow switching between Retro, Modern, and Ultra.</small></span><label class="setting-switch"><input id="theme-switch-enabled" type="checkbox" role="switch" aria-label="Theme switching on or off"><span class="switch-track" aria-hidden="true"></span></label></div><label class="setting-row"><span><b>App theme</b><small>Retro: warm glow · Modern: white glow · Ultra: color glow</small></span><select id="theme-choice"><option value="retro">RETRO</option><option value="modern">MODERN</option><option value="ultra">ULTRA</option></select></label><label class="setting-row"><span><b>Radio visualizer</b><small>Audio-reactive patterns across the bottom</small></span><select id="visualizer-choice"><option value="wave">Colour waves</option><option value="halo">Particle halo</option><option value="mesh" selected>Flowing mesh</option><option value="mix">Mix — random cycle</option><option value="off">Off</option></select></label><div class="setting-row"><span><b>Curated presets</b><small>Export your saved Radio and TV lists in their current order</small></span><button type="button" id="export-curated-presets">Export presets</button></div><div class="setting-row"><span><b>Unavailable channels</b><small>Hide locally; restore whenever you want.</small></span><button type="button" id="hide-radio-channel">Hide current radio</button><button type="button" id="hide-tv-channel">Hide current TV</button><button type="button" id="restore-hidden-channels">Restore hidden</button></div><div class="setting-row"><span><b>Remote channel buttons</b><small>Allow Bluetooth or system Next/Previous commands to change stations. Leave off if channels switch by themselves. On-screen buttons always work.</small></span><label class="setting-switch"><input id="remote-track-enabled" type="checkbox" role="switch" aria-label="Remote channel buttons"><span class="switch-track" aria-hidden="true"></span></label></div><p class="settings-note">Visual edition 4.1.25 · Playback build 3.0.163 · waits 10 seconds before skipping an unavailable stream.</p><p class="settings-note">Your presets and choices remain saved in this browser.</p></form></dialog>
+  <dialog class="settings-dialog" id="settings-dialog"><form method="dialog"><button class="dialog-close" aria-label="Close settings">×</button><span class="eyebrow">PERSONALISE YOUR PLAYER</span><h2>Settings</h2><div class="setting-row"><span><b>LEGACY THEME</b><small>Allow 10 taps on the Radio page to switch to the GitHub v2 look.</small></span><label class="setting-switch"><input id="legacy-theme-enabled" type="checkbox" role="switch" aria-label="Legacy theme on or off"><span class="switch-track" aria-hidden="true"></span></label></div><div class="setting-row"><span><b>THEME</b><small>Allow switching between Retro, Modern, and Ultra.</small></span><label class="setting-switch"><input id="theme-switch-enabled" type="checkbox" role="switch" aria-label="Theme switching on or off"><span class="switch-track" aria-hidden="true"></span></label></div><label class="setting-row"><span><b>App theme</b><small>Retro: warm glow · Modern: white glow · Ultra: color glow</small></span><select id="theme-choice"><option value="retro">RETRO</option><option value="modern">MODERN</option><option value="ultra">ULTRA</option></select></label><label class="setting-row"><span><b>Radio visualizer</b><small>Audio-reactive patterns across the bottom</small></span><select id="visualizer-choice"><option value="wave">Colour waves</option><option value="halo">Particle halo</option><option value="mesh" selected>Flowing mesh</option><option value="mix">Mix — random cycle</option><option value="off">Off</option></select></label><div class="setting-row"><span><b>Curated presets</b><small>Export your saved Radio and TV lists in their current order</small></span><button type="button" id="export-curated-presets">Export presets</button></div><div class="setting-row"><span><b>Unavailable channels</b><small>Hide locally; restore whenever you want.</small></span><button type="button" id="hide-radio-channel">Hide current radio</button><button type="button" id="hide-tv-channel">Hide current TV</button><button type="button" id="restore-hidden-channels">Restore hidden</button></div><div class="setting-row"><span><b>Remote channel buttons</b><small>Allow Bluetooth or system Next/Previous commands to change stations. Leave off if channels switch by themselves. On-screen buttons always work.</small></span><label class="setting-switch"><input id="remote-track-enabled" type="checkbox" role="switch" aria-label="Remote channel buttons"><span class="switch-track" aria-hidden="true"></span></label></div><label class="setting-row"><span><b>Mechanical sounds</b><small>Detent clicks, switch clacks and tuning static</small></span><input type="checkbox" id="hardware-sound-enabled" checked></label><p class="settings-note">Visual edition 4.1.25 · Playback build 3.0.163 · waits 10 seconds before skipping an unavailable stream.</p><p class="settings-note">Your presets and choices remain saved in this browser.</p></form></dialog>
+  <dialog class="settings-dialog cabinet-sleep-dialog" id="cabinet-sleep-dialog" aria-labelledby="cabinet-sleep-title">
+    <form method="dialog">
+      <button class="dialog-close" value="cancel" aria-label="Close sleep timer">&#215;</button>
+      <h2 id="cabinet-sleep-title">Sleep timer</h2>
+      <div class="cabinet-sleep-choices">
+        <button value="15">15 min</button><button value="30">30 min</button><button value="60">60 min</button><button value="0">Off</button>
+      </div>
+    </form>
+  </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <!-- Visual adapter only: mirrors existing DOM/media state and delegates shortcuts
      to original buttons/inputs. No stream selection, loading or recovery policy. -->
@@ -232,11 +247,14 @@ document.addEventListener('DOMContentLoaded',()=>{
   // Startup volume belongs to app.js; UI refreshes never reset it.
   if(window.retroV4VisualizerDefaultMesh){$('visualizer-choice').value='mesh';$('visualizer-choice').dispatchEvent(new Event('change',{bubbles:true}));}
   const skinLink=document.querySelector('link[rel="stylesheet"][href^="styles.css"]');
-  const refreshSkin=()=>{if(skinLink&&new URL(skinLink.href).pathname.endsWith('/styles.css')&&new URL(skinLink.href).searchParams.get('v')!=='4.1.2')skinLink.href='styles.css?v=4.1.2';};
+  const refreshSkin=()=>{if(skinLink&&new URL(skinLink.href).pathname.endsWith('/styles.css')&&new URL(skinLink.href).searchParams.get('v')!=='4.1.3')skinLink.href='styles.css?v=4.1.3';};
   if(skinLink)new MutationObserver(refreshSkin).observe(skinLink,{attributes:true,attributeFilter:['href']});
   refreshSkin();
   const text=(node,value)=>{if(node&&node.textContent!==String(value))node.textContent=String(value);};
   const tvVisible=()=>$('tv-screen').classList.contains('active');
+  const radioLiveIndicator=document.querySelector('.radio-live-indicator');
+  const radioMonitorTitle=document.querySelector('.radio-monitor-title');
+  const tvLiveIndicator=document.querySelector('.tv-live-indicator');
   // Keep the original controls and event hooks; put mute at the right end.
   for(const deck of document.querySelectorAll('.radio-tone-bank,.tv-hifi-deck')){
     const mute=deck.querySelector('[data-console-mute]');if(mute)deck.append(mute);
@@ -435,6 +453,9 @@ document.addEventListener('DOMContentLoaded',()=>{
     const station=savedStationLookup('radio').get(radioName.toLocaleLowerCase())||{name:radioName};
     paintRadioArtwork(art,radioName,art.dataset.stationLogo??source?.getAttribute('src')??'',station);
     text($('v4-radio-station'),radioName);text($('v4-radio-number'),cards[selected]?.dataset.memoryNumber||number(selected));
+    text(radioMonitorTitle.querySelector('.radio-monitor-channel'),'CH '+$('v4-radio-number').textContent);
+    text(radioMonitorTitle.querySelector('b'),radioName);
+    text(radioMonitorTitle.querySelector('.radio-monitor-details'),art.querySelector('#radio-subtitle')?.textContent||'');
     const tvSelected=$('remote-presets').querySelector('.active');
     const tvPosition=Number(tvSelected?.dataset.remotePreset??-1);
     if(tvPosition>=0&&tvPosition!==lastTVPreset){lastTVPreset=tvPosition;paintBank('tv',true);}
@@ -442,8 +463,19 @@ document.addEventListener('DOMContentLoaded',()=>{
     text($('v4-tv-number'),channel);text($('v4-osd-channel'),'CH '+channel);
     text($('v4-tv-station'),$('tv-title').textContent);
     text($('v4-radio-air'),audio.paused?'STANDBY':'ON AIR');text($('v4-tv-air'),video.paused?'STANDBY':'ON AIR');
-    document.querySelector('.receiver-readout').classList.toggle('vfd-signal-running',signalIsPlaying(audio,radioArtworkState==='playing'));
-    document.querySelector('.tv-receiver-readout').classList.toggle('vfd-signal-running',signalIsPlaying(video,tvSignalPlaying));
+    const radioLive=signalIsPlaying(audio,radioArtworkState==='playing');
+    document.querySelector('.receiver-readout').classList.toggle('vfd-signal-running',radioLive);
+    const tvReadout=document.querySelector('.tv-receiver-readout');
+    const tvLive=signalIsPlaying(video,tvSignalPlaying)||(!document.hidden&&$('tv-toggle').getAttribute('aria-label')==='Pause'&&Boolean($('cooltv-youtube-player')));
+    tvReadout.classList.toggle('vfd-signal-running',tvLive);
+    for(const [indicator,live,buffering] of [
+      [radioLiveIndicator,radioLive,radioArtworkState==='buffering'&&!audio.paused],
+      [tvLiveIndicator,tvLive,tvReadout.classList.contains('is-buffering')]
+    ]){
+      indicator.classList.toggle('is-live',live);
+      indicator.classList.toggle('is-buffering',!live&&buffering);
+      text(indicator,live?'LIVE':buffering?'BUFFERING':'STANDBY');
+    }
 
     const bass=$('radio-bass'),treble=$('radio-treble'),master=$('v4-master-tone');
     master.disabled=bass.disabled&&treble.disabled;
@@ -459,6 +491,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   let queued=false;
   function queue(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;sync();});}
   const observer=new MutationObserver(queue);
+  observer.observe($('tv-toggle'),{attributes:true,attributeFilter:['aria-label']});
   for(const id of ['radio-art','radio-status','radio-station-strip','radio-volume-knob-value','tv-title','remote-presets','tv-channel-number']){
     observer.observe($(id),{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class']});
   }
@@ -566,6 +599,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   let tunerEntries=[],tunerIndex=0,tunerPosition=0,tunerSignature=null,tunerDragging=false,tunerCommitTimer=0;
   const screen=$(kind+'-screen'),prefix=kind==='tv'?'tv-':'',media=kind==='tv'?video:audio;
   const tunerInput=$(prefix+'station-tuner-input'),tunerDial=$(prefix+'station-tuner-dial'),tunerTrack=$(kind+'-tuning-track'),tunerWindow=$(kind+'-tuning-window');
+  const feedback=window.RetroHardware;
+  const flywheel=feedback?.createFlywheel();
+  let tunerDrag=null,skipStripClickUntil=0;
   if(kind==='tv'){
     tunerDial.classList.add('tv-channel-selector');
     tunerDial.title='Stepped TV channel selector: drag one detent at a time; release to select';
@@ -603,15 +639,21 @@ document.addEventListener('DOMContentLoaded',()=>{
     tunerTrack.style.transform='translateX('+(tunerWindow.clientWidth/2-(tunerPosition+.5)*width-tunerPosition*gap)+'px)';
   }
   function previewStationTuner(value){
+    const previous=tunerIndex;
     tunerPosition=clampTuner(value,tunerEntries.length);tunerIndex=Math.round(tunerPosition);positionStationTuner();
+    if(previous!==tunerIndex)feedback?.SoundFX.detent();
   }
   function commitStationTuner(){
+    stopCoasting();
     clearTimeout(tunerCommitTimer);tunerCommitTimer=0;
     if(!screen.classList.contains('active'))return;
     tunerPosition=tunerIndex;positionStationTuner();
     const button=tunerEntries[tunerIndex]?.button;
     // Only explicit knob/key/card gestures reach here. Filter/resize/render never play.
-    if(button?.isConnected&&(!button.classList.contains('active')||media.paused))button.click();
+    if(button?.isConnected&&(!button.classList.contains('active')||media.paused)){
+      if(!button.classList.contains('active'))feedback?.SoundFX.staticBurst();
+      button.click();
+    }
   }
   function scheduleStationTune(){clearTimeout(tunerCommitTimer);tunerCommitTimer=setTimeout(commitStationTuner,200);}
   function paintStationTuner(entries,followActive=false){
@@ -619,7 +661,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     const changed=signature!==tunerSignature;
     tunerEntries=entries;
     if(changed){
-      clearTimeout(tunerCommitTimer);tunerCommitTimer=0;tunerSignature=signature;
+      cancelStationTuner();tunerSignature=signature;
       tunerTrack.replaceChildren();
       entries.forEach((entry,index)=>{
         const card=document.createElement('button');card.type='button';card.className='radio-tuning-card';card.dataset.tunerIndex=String(index);card.setAttribute('aria-label','Tune '+entry.name);
@@ -638,48 +680,111 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
     positionStationTuner();
   }
-  tunerInput.addEventListener('input',()=>{previewStationTuner(tunerInput.value);if(!tunerDragging)scheduleStationTune();});
+  tunerInput.addEventListener('input',()=>{if(!tunerDragging)stopCoasting();previewStationTuner(tunerInput.value);if(!tunerDragging)scheduleStationTune();});
   tunerInput.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();commitStationTuner();}});
-  let tunerDrag=null;
+  function stopCoasting(){
+    flywheel?.cancel();
+    if(!tunerDragging)tunerWindow.classList.remove('tuner-dragging');
+  }
+  function startDrag(event,surface){
+    stopCoasting();
+    tunerDrag={id:event.pointerId,x:event.clientX,y:event.clientY,position:tunerPosition,surface};
+    flywheel?.start(tunerPosition,event.timeStamp);
+  }
   tunerDial.addEventListener('pointerdown',event=>{
-    if(event.button!==0||tunerInput.disabled)return;
-    clearTimeout(tunerCommitTimer);tunerDragging=true;tunerDrag={id:event.pointerId,x:event.clientX,y:event.clientY,position:tunerPosition};
+    if(event.button!==0||tunerInput.disabled||tunerDrag)return;
+    clearTimeout(tunerCommitTimer);startDrag(event,tunerDial);tunerDragging=true;
     tunerWindow.classList.add('tuner-dragging');tunerDial.setPointerCapture(event.pointerId);tunerInput.focus({preventScroll:true});event.preventDefault();event.stopPropagation();
   });
   tunerDial.addEventListener('pointermove',event=>{
-    if(!tunerDrag||tunerDrag.id!==event.pointerId)return;
+    if(tunerDrag?.surface!==tunerDial||tunerDrag.id!==event.pointerId)return;
     const travel=event.clientX-tunerDrag.x+tunerDrag.y-event.clientY;
+    const position=tunerDrag.position+travel/(kind==='tv'?32:24);
+    flywheel?.sample(position,event.timeStamp);
     // TV has discrete mechanical detents; Radio retains a continuous ribbon preview.
     previewStationTuner(tunerDrag.position+(kind==='tv'?Math.round(travel/32):travel/24));event.preventDefault();event.stopPropagation();
   });
   function finishStationTuner(event){
     if(!tunerDrag||tunerDrag.id!==event.pointerId)return;
+    const {surface,x,y}=tunerDrag;
+    if(event.currentTarget!==surface)return;
     const cancelled=event.type!=='pointerup';
-    if(!cancelled&&Math.hypot(event.clientX-tunerDrag.x,event.clientY-tunerDrag.y)<5){
+    const dragged=tunerDragging;
+    const tap=surface===tunerDial&&!cancelled&&Math.hypot(event.clientX-x,event.clientY-y)<5;
+    if(tap){
       const rect=tunerDial.getBoundingClientRect();
       previewStationTuner(tunerIndex+(event.clientX<rect.left+rect.width/2?-1:1));
     }
-    tunerDrag=null;tunerDragging=false;tunerWindow.classList.remove('tuner-dragging');
-    if(tunerDial.hasPointerCapture(event.pointerId))tunerDial.releasePointerCapture(event.pointerId);
-    if(cancelled)paintStationTuner(tunerEntries,true);else commitStationTuner();event.stopPropagation();
+    tunerDrag=null;tunerDragging=false;
+    if(surface.hasPointerCapture(event.pointerId))surface.releasePointerCapture(event.pointerId);
+    if(surface===tunerWindow&&!dragged)return;
+    if(surface===tunerWindow)skipStripClickUntil=performance.now()+350;
+    if(cancelled){stopCoasting();paintStationTuner(tunerEntries,true);}
+    else if(tap||!flywheel)commitStationTuner();
+    else flywheel.release({position:tunerPosition,time:event.timeStamp,maximum:tunerEntries.length-1,
+      preview:previewStationTuner,settle:commitStationTuner});
+    event.stopPropagation();
   }
   for(const name of ['pointerup','pointercancel','lostpointercapture'])tunerDial.addEventListener(name,finishStationTuner);
+  tunerWindow.addEventListener('pointerdown',event=>{
+    if(event.button!==0||tunerInput.disabled||tunerDrag)return;
+    skipStripClickUntil=0;
+    clearTimeout(tunerCommitTimer);
+    startDrag(event,tunerWindow);
+    event.stopPropagation();
+  });
+  tunerWindow.addEventListener('pointermove',event=>{
+    if(tunerDrag?.surface!==tunerWindow||tunerDrag.id!==event.pointerId)return;
+    const travel=tunerDrag.x-event.clientX;
+    if(!tunerDragging){
+      if(Math.abs(travel)<7||Math.abs(travel)<Math.abs(event.clientY-tunerDrag.y))return;
+      const card=tunerTrack.firstElementChild;
+      tunerDrag.pitch=card.getBoundingClientRect().width+(parseFloat(getComputedStyle(tunerTrack).columnGap)||0);
+      if(!tunerDrag.pitch)return;
+      tunerDragging=true;
+      tunerWindow.classList.add('tuner-dragging');
+      tunerWindow.setPointerCapture(event.pointerId);
+    }
+    const position=tunerDrag.position+travel/tunerDrag.pitch;
+    flywheel?.sample(position,event.timeStamp);
+    previewStationTuner(position);
+    event.preventDefault();
+  });
+  for(const name of ['pointerup','pointercancel'])window.addEventListener(name,event=>{
+    if(tunerDrag?.surface===tunerWindow&&!tunerDragging&&tunerDrag.id===event.pointerId)tunerDrag=null;
+  });
+  for(const name of ['pointerup','pointercancel','lostpointercapture'])tunerWindow.addEventListener(name,event=>{
+    if(name==='lostpointercapture'&&event.target!==tunerWindow)return;
+    finishStationTuner(event);
+  });
+  tunerWindow.addEventListener('click',event=>{
+    if(event.detail&&performance.now()<skipStripClickUntil){event.preventDefault();event.stopImmediatePropagation();}
+  },true);
   tunerDial.addEventListener('wheel',event=>{
     if(tunerInput.disabled||event.ctrlKey||!event.deltaY)return;
     event.preventDefault();event.stopPropagation();tunerInput.focus({preventScroll:true});
+    stopCoasting();
     previewStationTuner(tunerIndex+(event.deltaY<0?1:-1));scheduleStationTune();
   },{passive:false});
   screen.querySelectorAll('[data-tuner-step]').forEach(button=>button.addEventListener('click',()=>{previewStationTuner(tunerIndex+Number(button.dataset.tunerStep));commitStationTuner();}));
-  document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(tunerCommitTimer);tunerCommitTimer=0;}});
+  document.addEventListener('visibilitychange',()=>{
+    if(!document.hidden)return;
+    cancelStationTuner();
+    paintStationTuner(tunerEntries,true);
+  });
   if(window.ResizeObserver)new ResizeObserver(positionStationTuner).observe(tunerWindow);
   else window.addEventListener('resize',positionStationTuner);
-  return {paint:paintStationTuner,cancel(){
+  function cancelStationTuner(){
     clearTimeout(tunerCommitTimer);tunerCommitTimer=0;
-    const pointer=tunerDrag?.id;tunerDrag=null;tunerDragging=false;tunerWindow.classList.remove('tuner-dragging');
-    if(pointer!==undefined&&tunerDial.hasPointerCapture(pointer))tunerDial.releasePointerCapture(pointer);
-  }};
+    const drag=tunerDrag;tunerDrag=null;tunerDragging=false;stopCoasting();
+    if(drag?.surface.hasPointerCapture(drag.id))drag.surface.releasePointerCapture(drag.id);
+  }
+  return {paint:paintStationTuner,cancel:cancelStationTuner};
   }
   const stationTuners={radio:createStationTuner('radio'),tv:createStationTuner('tv')};
+  document.addEventListener('retro-sleep-expired',()=>{
+    stationTuners.radio.cancel();stationTuners.tv.cancel();
+  });
   document.addEventListener('retro-mode-changing',()=>{
     stationTuners.radio.cancel();stationTuners.tv.cancel();
     document.querySelectorAll('.module-options[open]').forEach(drawer=>drawer.open=false);

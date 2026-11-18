@@ -1,5 +1,35 @@
 # Version 4.0 — preserved DOM and JavaScript contract
 
+## Tactile deck verification
+
+The original ID inventory below still applies. The following IDs were added after that inventory and are now part of the same contract.
+
+| Area | Preserved IDs and hooks | Check |
+|---|---|---|
+| Radio playback and favourites | `radio-audio`, `radio-play`, `radio-prev`, `radio-next`, `radio-star`, `radio-station-strip` | Play, pause, tune and save. The bezel star is the original button. The legacy bezel arrows remain bound. |
+| TV playback and favourites | `tv-video`, `tv-toggle`, `tv-prev`, `tv-next`, `tv-star`, `remote-presets`, `tv-fullscreen-shell`, `data-remote`, `data-fullscreen-action` | Change channels, save, enter fullscreen and return. The bezel star is the original button. |
+| Radio tuning | `station-tuner-dial`, `station-tuner-input`, `station-tuner-label`, `radio-tuning-window`, `radio-tuning-track`, `data-tuner-step`, generated `data-tuner-index` | Try tap, wheel, keyboard, strip drag and fast flick. Each final detent delegates to the original station button once. |
+| TV tuning | `tv-station-tuner-dial`, `tv-station-tuner-input`, `tv-station-tuner-label`, `tv-tuning-window`, `tv-tuning-track`, `data-tuner-step` | Repeat the Radio checks on TV. A cancelled gesture or mode change should not tune a channel. |
+| Volume and tone | `radio-volume`, `radio-volume-knob`, `radio-volume-dial`, `v4-tv-volume`, `v4-tv-volume-dial`, `v4-tv-volume-value`, `v4-master-tone`, `v4-tone-dial`, `v4-tone-value`, `data-console-mute` | Adjust and mute each mode. Foley has a separate output gain. |
+| Filtering, mode and presets | `data-console-filter`, `data-console-mode`, `data-console-power`, `data-console-info`, `data-console-hide`, `data-memory-kind`, `data-memory-bank`, `data-memory-step`, `data-player-nav`, `data-screen` | Press every steel category key and switch with the orange rocker. Open Presets and Explore, then use TUNER to return to the last player. |
+| Readout and clock | `v4-radio-air`, `v4-radio-number`, `v4-radio-station`, `v4-tv-air`, `v4-tv-number`, `v4-tv-station`, `v4-osd-channel`, `epaper-calendar`, `epaper-date`, `epaper-moon-light`, `epaper-phase`, `radio-news-track` | Check live status, local time, ticker margins and counter at phone sizes. The bars reflect playback lock. |
+
+New hooks to verify
+
+- `RetroHardware.SoundFX` provides detent, thunk, tuning-static and lock-fade effects. Disable Mechanical sounds in Settings and verify that programme audio and volume still work.
+- `RetroHardware.createFlywheel` previews motion and settles through the tuner’s existing commit path. Try a fast flick, interrupt it with a second gesture, and repeat with reduced motion enabled.
+- `retro-mode-changing` triggers the CRT animation without delaying the original mode and playback callbacks. The existing media state drives the glow and the signal indicators.
+- `data-sleep-open` opens the shared local countdown for both players. The settings checkbox is `hardware-sound-enabled`, and the timer uses `cabinet-sleep-dialog` and `cabinet-sleep-title`. On expiry, `retro-sleep-expired` calls the original stop handlers. The Off option clears the countdown.
+
+### Artwork and console checks
+
+- Open Radio favourites, TV favourites and Recent in Presets. Open My Library and Discover Online in Explore. Check for a 38 px logo badge on every result and a gold monogram on a station with missing or broken artwork. Try a favourite, an Explore result and a preset reorder to confirm that the original card actions still work.
+- Tab through each console. The bezel transport cluster and tuner arrows remain available. The old bezel skip buttons, top modes and legacy navigation buttons stay out of the tab sequence. Their existing selectors and programmatic click handlers remain available.
+- Press a category key, MUTE or the mode rocker. The new `SoundFX.clack()` hook plays on press, with a keyboard fallback. Toggle Mechanical sounds in Settings and check that the stream continues independently.
+- Flick the dial and strip in both modes. The original detent preview and final commit handle the station change. Check the CRT beam, clock and three telemetry states, including a buffering stream. With reduced motion on, the original mode switch still works.
+
+## Historical 4.0 baseline
+
 Baseline: current build 3.0.163. Only index.html and styles.css are redesigned. All other copied app files remain byte-for-byte identical.
 
 ## Every existing DOM ID
