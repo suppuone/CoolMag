@@ -1,0 +1,938 @@
+/* 4.1.1 - authoritative layout for the direct-audio thumbwheel receiver.
+   Kept separate from the original skin for a clean, complete rollback. */
+body.broadcast-console{
+ padding:8px 84px;display:grid;place-items:center;
+}
+
+.broadcast-console .retro-app.broadcast-chassis{
+ width:100%;max-width:1800px;height:calc(100dvh - 16px);min-height:0;
+ margin:0 auto;padding:10px;gap:6px;
+ grid-template-rows:36px minmax(0,1fr) 44px;
+}
+.broadcast-console .retro-app>.topbar{height:36px;min-height:0}
+.broadcast-console .retro-app>.screen{grid-row:2;height:100%;min-height:0}
+.broadcast-console #radio-screen.active,.broadcast-console #tv-screen.active{
+ grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);
+ grid-template-rows:minmax(0,1fr);gap:12px;
+}
+.broadcast-console .receiver-panel.radio-receiver,
+.broadcast-console .receiver-panel.tv-receiver{
+ grid-template-rows:minmax(72px,.24fr) minmax(92px,.21fr) minmax(0,.55fr);
+ gap:6px;height:100%;min-height:0;
+}
+.broadcast-console .radio-tone-bank.receiver-knobs,
+.broadcast-console .tv-hifi-deck{
+ display:grid;grid-template-columns:48px 64px minmax(0,1fr);
+ grid-template-rows:minmax(0,1fr);gap:20px;padding:5px 12px;
+ align-items:center;min-height:0;height:100%;width:100%;
+}
+.broadcast-console .master-tone-control,
+.broadcast-console .tv-tone-unavailable,
+.broadcast-console .trim-knobs,.broadcast-console .tv-trim-legend{display:none!important}
+.broadcast-console .radio-tone-bank>.mini-rocker,
+.broadcast-console .tv-hifi-deck>.mini-rocker{grid-column:1;grid-row:1;gap:6px}
+.broadcast-console .radio-tone-bank>.radio-transport-stack,
+.broadcast-console .tv-hifi-deck>.volume-knob-control{
+ grid-column:2;grid-row:1;height:100%;min-height:0;
+}
+.broadcast-console .radio-transport-stack>.volume-transport{height:100%;min-height:0}
+.broadcast-console .radio-transport-stack .volume-knob-control,
+.broadcast-console .tv-hifi-deck>.volume-knob-control{
+ display:grid;grid-template-rows:14px minmax(0,1fr) 17px;
+ justify-items:center;gap:3px;height:100%;min-height:0;
+}
+.broadcast-console .tone-label{font-size:clamp(10px,.8vw,14px);line-height:1;letter-spacing:.06em}
+.broadcast-console #radio-volume-knob-value,
+.broadcast-console #v4-tv-volume-value{
+ font:600 clamp(12px,.9vw,17px)/1 var(--type-data);min-height:0;margin:0;
+}
+.broadcast-console .volume-dial.thumbwheel-dial{
+ position:relative;display:block;align-self:center;flex:none;
+ width:54px;min-width:44px;max-width:none;height:100%;min-height:44px;max-height:112px;
+ border:2px solid #78877e;border-radius:7px;
+ background:linear-gradient(100deg,#a8b4ac,#25382e 11%,#101a14 21% 79%,#728276 91%,#c0ccc1);
+ box-shadow:inset 1px 1px 2px #e2e9da88,inset -1px -2px 3px #000c,0 3px 5px #0009;
+ touch-action:none;cursor:ns-resize;user-select:none;
+}
+.broadcast-console .thumbwheel-dial>.volume-knob-face,
+.broadcast-console .thumbwheel-dial>.volume-knob-scale,
+.broadcast-console .thumbwheel-dial>.knob-led-arc,
+.broadcast-console .thumbwheel-dial>.dial-led-arc{display:none!important}
+.broadcast-console .volume-dial.thumbwheel-dial::before{
+ content:"";position:absolute;inset:5px 9px;border-radius:5px;
+ border:1px solid #adb7aa;
+ background:
+  linear-gradient(90deg,#354b3c,#d0dbcc 26%,#f0f0d8 45%,#9ba991 65%,#354c39),
+  repeating-linear-gradient(0deg,#dfe5d5 0 1px,#839281 1px 2px,#1a3020 2px 4px);
+ background-blend-mode:multiply;background-size:100% 100%,100% 4px;
+ background-position:0 0,0 var(--thumbwheel-offset,0px);
+ box-shadow:inset 2px 0 3px #000a,inset -2px 0 3px #0008,0 1px 2px #000d;
+ pointer-events:none;
+}
+.broadcast-console .volume-dial.thumbwheel-dial::after{
+ content:"";position:absolute;left:1px;right:1px;top:50%;height:2px;
+ background:linear-gradient(90deg,#e9c36a 0 15%,transparent 15% 85%,#e9c36a 85%);
+ pointer-events:none;
+}
+.broadcast-console .thumbwheel-dial>#radio-volume-knob,
+.broadcast-console .thumbwheel-dial>#v4-tv-volume{
+ position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;
+ opacity:0;cursor:ns-resize;touch-action:none;writing-mode:vertical-lr;direction:rtl;
+}
+.broadcast-console .thumbwheel-dial:has(input:focus-visible){outline:3px solid #ffb000;outline-offset:4px}
+.broadcast-console .knob-calendar-slot{
+ grid-column:3;grid-row:1;align-self:center;justify-self:center;min-width:0;width:100%;
+}
+.broadcast-console .epaper-calendar{justify-content:center;padding:0;gap:10px}
+.broadcast-console .epaper-calendar time{font-size:clamp(12px,1vw,19px)}
+.broadcast-console .epaper-calendar span{font-size:clamp(11px,.8vw,15px)}
+.broadcast-console .orange-rocker{height:60px;min-height:44px;max-height:60px}
+.broadcast-console .chrome-mute{height:28px;min-height:28px;font-size:10px}
+.broadcast-console #radio-screen .receiver-matrix,.broadcast-console #tv-screen .remote-shortcuts{
+ display:grid;grid-template-rows:16px minmax(0,1fr) 44px;
+ gap:4px;min-height:0;padding:7px;
+}
+.broadcast-console .receiver-matrix>.module-legend,
+.broadcast-console .remote-shortcuts>span{grid-row:1;min-height:0;margin:0;font-size:clamp(10px,.85vw,14px)}
+.broadcast-console #radio-screen .receiver-matrix>.large-radio-tuner,
+.broadcast-console #tv-screen .remote-shortcuts>.large-radio-tuner{
+ grid-row:2;grid-column:1;min-height:0;height:100%;
+ grid-template-rows:16px minmax(0,1fr);padding:4px 8px 10px!important;gap:3px!important;
+ --channel-step-size:clamp(48px,4vw,72px);--channel-step-gap:16px;
+}
+.broadcast-console .large-radio-tuner>.tuner-instrument{transform:none;gap:var(--channel-step-gap)}
+.broadcast-console .large-radio-tuner::after{transform:none;font-size:12px}
+.broadcast-console #radio-screen .station-tuner-dial,
+.broadcast-console #tv-screen .station-tuner-dial{
+ --station-diameter:clamp(52px,min(calc(100cqw - var(--channel-step-size) - var(--channel-step-size) - var(--channel-step-gap) - var(--channel-step-gap) - 18px),calc(100cqh - 36px)),290px);
+}
+.broadcast-console #radio-screen .receiver-matrix>.hardware-filter-bar,
+.broadcast-console #tv-screen .remote-shortcuts>.hardware-filter-bar{
+ grid-row:3;grid-column:1;position:static;transform:none;height:44px;min-height:0;
+}
+.broadcast-console .hardware-filter-bar .hardware-filter{height:44px;min-height:44px;font-size:clamp(10px,.8vw,14px)}
+.broadcast-console .retro-app>.bottom-nav{
+ grid-row:3;height:44px;min-height:0;padding:0;margin:0;gap:6px;
+}
+.broadcast-console .bottom-nav .nav-item{height:44px;min-height:44px;font-size:clamp(11px,.85vw,16px)}
+.options-utilities{display:flex;gap:10px;padding:10px 0;align-items:center}
+.options-utilities>#install-app,.options-utilities>#settings-open{
+ position:static;width:48px;height:44px;min-width:48px;min-height:44px;padding:10px;
+}
+.options-utilities svg{width:22px;height:22px}
+@media(min-width:901px) and (max-width:1150px){
+ body.broadcast-console{padding-inline:64px}
+ .broadcast-console .rack-handle{width:48px}
+ .broadcast-console .rack-handle-left{left:-52px}.broadcast-console .rack-handle-right{right:-52px}
+ .broadcast-console .radio-tone-bank.receiver-knobs,.broadcast-console .tv-hifi-deck{gap:10px;padding-inline:6px;grid-template-columns:40px 54px minmax(0,1fr)}
+}
+@media(max-width:900px){
+ body.broadcast-console{padding:5px}
+ .broadcast-console .rack-handle{display:none}
+ .broadcast-console .retro-app.broadcast-chassis{
+  width:100%;height:calc(100dvh - 10px);max-width:none;padding:5px;gap:4px;
+  grid-template-rows:minmax(0,1fr) 44px;
+ }
+ .broadcast-console .retro-app>.topbar{display:none}
+ .broadcast-console .retro-app>.screen{grid-row:1}
+ .broadcast-console #radio-screen.active,.broadcast-console #tv-screen.active{
+  grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(140px,1fr) minmax(256px,1.05fr);gap:4px;
+ }
+ .broadcast-console #radio-screen>.radio-display,.broadcast-console #tv-screen>.tv-fullscreen-shell{grid-column:1;grid-row:1}
+ .broadcast-console .receiver-panel.radio-receiver,.broadcast-console .receiver-panel.tv-receiver{
+  grid-column:1;grid-row:2;grid-template-rows:minmax(64px,.25fr) 80px minmax(112px,.75fr);gap:3px;
+ }
+ .broadcast-console #radio-screen .crt-module,
+ .broadcast-console #tv-screen .crt-module{
+  padding:3px;gap:3px;grid-template-rows:12px minmax(0,1fr) 44px;
+  border-radius:7px;
+ }
+ .broadcast-console .radio-art,
+ .broadcast-console .tv-video-card .tv-picture{
+  border-width:4px;border-radius:12px / 10px;
+ }
+ .broadcast-console .crt-module>.module-legend{font-size:9px;line-height:12px;letter-spacing:.03em}
+ .broadcast-console .crt-module>.module-legend>span:last-child{font-size:8px}
+ .broadcast-console .radio-lip-transport,.broadcast-console .tv-actions{bottom:3px;right:3px;gap:4px;height:40px}
+ .broadcast-console .radio-lip-transport>button,.broadcast-console .tv-actions>button{width:40px;min-width:40px;height:40px;min-height:40px;font-size:17px}
+ .broadcast-console .crt-module>.module-options{bottom:3px;left:3px}
+ .broadcast-console .crt-module>.module-options>summary{width:66px;height:40px;min-height:40px;font-size:10px;display:grid;place-items:center}
+ .broadcast-console .crt-module>.module-options[open]{position:absolute;z-index:30;inset:3px;width:auto;max-height:calc(100% - 6px);padding:46px 8px 8px;overflow:auto;background:#17221bf5}
+ .broadcast-console .radio-display>.cassette-counter{left:76px;bottom:10px;width:64px;height:24px;transform:none}
+ .broadcast-console .radio-tone-bank.receiver-knobs,.broadcast-console .tv-hifi-deck{
+  grid-template-columns:44px 52px minmax(0,1fr);gap:10px;padding:3px 8px;
+ }
+ .broadcast-console .mini-rocker{gap:4px}
+ .broadcast-console .orange-rocker{width:36px;min-width:36px;height:44px;min-height:44px;font-size:9px}
+ .broadcast-console .chrome-mute{height:24px;min-height:24px;width:36px;min-width:36px;font-size:10px}
+ .broadcast-console .radio-transport-stack .volume-knob-control,.broadcast-console .tv-hifi-deck>.volume-knob-control{grid-template-rows:11px minmax(0,1fr) 12px;gap:2px}
+ .broadcast-console .tone-label{font-size:9px}
+ .broadcast-console #radio-volume-knob-value,.broadcast-console #v4-tv-volume-value{font-size:12px;line-height:1;height:auto}
+ .broadcast-console .volume-dial.thumbwheel-dial{width:44px;max-height:none}
+ .broadcast-console .epaper-calendar{gap:5px}
+ .broadcast-console .epaper-moon{width:30px;height:30px}
+ .broadcast-console .epaper-calendar time{font-size:11px;line-height:1.3}
+ .broadcast-console .epaper-calendar span{font-size:10px;line-height:1.2}
+ .broadcast-console .receiver-readout.vfd-window,.broadcast-console .tv-receiver-readout.vfd-window{padding:4px 28px 4px 22px}
+ .broadcast-console .radio-tuning-scale{font-size:9px}
+ .broadcast-console .radio-tuning-card b{font-size:12px}
+ .broadcast-console #radio-screen .receiver-matrix,.broadcast-console #tv-screen .remote-shortcuts{grid-template-rows:12px minmax(0,1fr) 44px;padding:4px;gap:2px}
+ .broadcast-console .receiver-matrix>.module-legend,.broadcast-console .remote-shortcuts>span{font-size:10px;line-height:12px}
+ .broadcast-console #radio-screen .receiver-matrix>.large-radio-tuner,.broadcast-console #tv-screen .remote-shortcuts>.large-radio-tuner{
+  --channel-step-size:44px;--channel-step-gap:12px;
+  grid-template-rows:12px minmax(0,1fr);padding:1px 4px 7px!important;gap:1px!important;
+ }
+ .broadcast-console .large-radio-tuner::after{font-size:10px;line-height:12px}
+ .broadcast-console #radio-screen .station-tuner-dial,.broadcast-console #tv-screen .station-tuner-dial{
+  --station-diameter:clamp(52px,min(calc(100cqw - 126px),calc(100cqh - 23px)),190px);
+ }
+ .broadcast-console #radio-screen .receiver-matrix>.hardware-filter-bar,
+ .broadcast-console #tv-screen .remote-shortcuts>.hardware-filter-bar,
+ .broadcast-console .hardware-filter-bar .hardware-filter{height:44px;min-height:44px;transform:none}
+ .broadcast-console .hardware-filter{font-size:10px}
+ .broadcast-console .retro-app>.bottom-nav{grid-row:2;gap:4px;height:44px}
+ .broadcast-console .bottom-nav .nav-item{font-size:10px;gap:3px;letter-spacing:0}
+ .broadcast-console .radio-art>.radio-news-ticker{height:24px;min-height:24px;bottom:1px}
+ .broadcast-console #radio-screen .ticker-headline,.broadcast-console #radio-screen .ticker-static{font-size:14px;line-height:24px}
+ .broadcast-console .radio-art-caption{top:5px;right:6px;left:6px}
+ .broadcast-console #radio-screen .radio-art-caption h1{font-size:12px}
+ .broadcast-console #radio-screen .radio-art-caption p{font-size:10px}
+ .broadcast-console .radio-art .receiver-station-artwork{inset:40px 8px 28px}
+}
+@media(max-width:900px) and (max-height:620px) and (orientation:portrait){
+ .broadcast-console #radio-screen.active,.broadcast-console #tv-screen.active{grid-template-rows:minmax(100px,1fr) 248px}
+ .broadcast-console .receiver-panel.radio-receiver,.broadcast-console .receiver-panel.tv-receiver{grid-template-rows:60px 76px minmax(0,1fr)}
+ .broadcast-console .epaper-moon{width:24px;height:24px}
+ .broadcast-console .epaper-calendar time{font-size:10px}.broadcast-console .epaper-calendar span{font-size:9px}
+}
+@media(max-height:590px) and (orientation:landscape){
+ body.broadcast-console{padding:4px 54px}
+ .broadcast-console .retro-app.broadcast-chassis{height:calc(100dvh - 8px);padding:5px;gap:4px;grid-template-rows:28px minmax(0,1fr) 36px}
+ .broadcast-console .retro-app>.topbar{display:flex;height:28px}
+ .broadcast-console .retro-app>.screen{grid-row:2}
+ .broadcast-console #radio-screen.active,.broadcast-console #tv-screen.active{grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr);gap:6px}
+ .broadcast-console .receiver-panel.radio-receiver,.broadcast-console .receiver-panel.tv-receiver{grid-column:2;grid-row:1;grid-template-rows:minmax(50px,.24fr) 72px minmax(0,.76fr);gap:3px}
+ .broadcast-console .retro-app>.bottom-nav{grid-row:3;height:36px}
+ .broadcast-console .bottom-nav .nav-item{height:36px;min-height:36px;font-size:11px}
+ .broadcast-console .radio-tone-bank.receiver-knobs,.broadcast-console .tv-hifi-deck{grid-template-columns:36px 48px minmax(0,1fr);gap:6px;padding:2px 4px}
+ .broadcast-console .orange-rocker{height:40px;min-height:40px;width:32px;min-width:32px;font-size:8px}
+ .broadcast-console .chrome-mute{height:24px;min-height:24px}
+ .broadcast-console .radio-transport-stack .volume-knob-control,.broadcast-console .tv-hifi-deck>.volume-knob-control{grid-template-rows:10px minmax(0,1fr) 12px;gap:1px}
+ .broadcast-console .volume-dial.thumbwheel-dial{width:44px;min-height:44px}
+ .broadcast-console .tone-label{font-size:9px}
+ .broadcast-console #radio-screen .receiver-matrix,.broadcast-console #tv-screen .remote-shortcuts{grid-template-rows:12px minmax(0,1fr) 34px;padding:3px;gap:2px}
+ .broadcast-console #radio-screen .receiver-matrix>.large-radio-tuner,.broadcast-console #tv-screen .remote-shortcuts>.large-radio-tuner{--channel-step-size:40px;--channel-step-gap:10px;grid-template-rows:10px minmax(0,1fr);padding:1px 4px 6px!important}
+ .broadcast-console #radio-screen .station-tuner-dial,.broadcast-console #tv-screen .station-tuner-dial{--station-diameter:clamp(44px,min(calc(100cqw - 118px),calc(100cqh - 20px)),180px)}
+ .broadcast-console #radio-screen .receiver-matrix>.hardware-filter-bar,
+ .broadcast-console #tv-screen .remote-shortcuts>.hardware-filter-bar,
+ .broadcast-console .hardware-filter-bar .hardware-filter{height:34px;min-height:34px;font-size:9px}
+}
+
+/* Compact silver roller: mode on the left, volume across the middle, mute right. */
+.broadcast-console .knob-calendar-slot,.broadcast-console #epaper-calendar{display:none!important}
+.broadcast-console .radio-tone-bank.receiver-knobs,.broadcast-console .tv-hifi-deck{
+ grid-template-columns:52px minmax(0,1fr) 52px;gap:16px;height:100%;padding:4px 10px!important;
+}
+.broadcast-console .radio-tone-bank>.mini-rocker,.broadcast-console .tv-hifi-deck>.mini-rocker{grid-column:1;grid-row:1;justify-self:center}
+.broadcast-console .radio-tone-bank>.chrome-mute,.broadcast-console .tv-hifi-deck>.chrome-mute{
+ grid-column:3;grid-row:1;justify-self:center;align-self:center;
+ width:48px;min-width:44px;height:44px;min-height:44px;font-size:12px;
+}
+.broadcast-console .radio-transport-stack .volume-knob-control,.broadcast-console .tv-hifi-deck>.volume-knob-control{
+ grid-template-columns:minmax(0,1fr) auto;grid-template-rows:16px minmax(44px,1fr);
+ gap:3px 8px;width:100%;height:100%;align-items:center;
+}
+.broadcast-console .volume-knob-control>.tone-label{grid-column:1;grid-row:1;justify-self:start;font-size:14px;line-height:16px}
+.broadcast-console #radio-volume-knob-value,.broadcast-console #v4-tv-volume-value{
+ grid-column:2;grid-row:1;justify-self:end;font-size:14px;line-height:16px;height:auto;
+}
+.broadcast-console .volume-dial.thumbwheel-dial{
+ grid-column:1 / -1;grid-row:2;align-self:stretch;
+ width:100%;min-width:0;height:100%;min-height:44px;max-height:60px;
+ border:2px solid #6e7478;border-radius:9px;cursor:ew-resize;
+ background:linear-gradient(#c4cace,#70797e 12%,#12181c 30% 70%,#666e73 90%,#d3d7da);
+ box-shadow:inset 0 2px 4px #000e,inset 0 -2px 3px #eff6ff55,0 3px 5px #000b;
+}
+.broadcast-console .volume-dial.thumbwheel-dial::before{
+ inset:5px 7px;border-radius:6px;border:1px solid #91999e;
+ background:
+  linear-gradient(0deg,#434c53,#939fa7 16%,#e4e9ec 40%,#f5f7f8 49%,#a8b2ba 70%,#4a545d),
+  repeating-linear-gradient(0deg,#eff5f7 0 1px,#66737c 1px 2px,#c4cdd3 2px 4px);
+ background-blend-mode:multiply;background-size:100% 100%,100% 4px;
+ background-position:0 0,0 var(--thumbwheel-offset,0px);
+ box-shadow:inset 9px 0 9px -5px #000e,inset -9px 0 9px -5px #000e,inset 0 1px 1px #fff9,0 1px 2px #000c;
+}
+.broadcast-console .volume-dial.thumbwheel-dial::after{
+ inset:3px;height:auto;border-radius:6px;
+ background:linear-gradient(90deg,#020609b3,transparent 12% 88%,#020609b3);
+}
+.broadcast-console .thumbwheel-dial>#radio-volume-knob,.broadcast-console .thumbwheel-dial>#v4-tv-volume{
+ writing-mode:horizontal-tb;direction:ltr;cursor:ew-resize;
+}
+.broadcast-console .receiver-panel.radio-receiver,.broadcast-console .receiver-panel.tv-receiver{
+ grid-template-rows:minmax(72px,.24fr) 84px minmax(0,.76fr);
+}
+/* Keep the badge on the lower bezel, above the options and transport buttons. */
+.broadcast-console #radio-screen .crt-module,.broadcast-console #tv-screen #tv-display:not(.cinema-mode){
+ --cabinet-badge-height:clamp(72px,12dvh,92px);
+ --monitor-legend-height:20px;
+ --monitor-controls-height:44px;
+ padding:8px;gap:5px;
+ grid-template-rows:var(--monitor-legend-height) minmax(0,1fr) var(--cabinet-badge-height) var(--monitor-controls-height);
+}
+.broadcast-console #tv-display:not(.cinema-mode) .tv-rail-wrap,
+.broadcast-console #tv-display:not(.cinema-mode) .tv-rail,
+.broadcast-console #tv-display:not(.cinema-mode) .tv-video-card{
+ height:100%;min-height:0;padding:0;margin:0;gap:0;aspect-ratio:auto;
+}
+.broadcast-console #radio-screen .radio-art,
+.broadcast-console #tv-display:not(.cinema-mode) .tv-video-card .tv-picture{
+ height:100%;min-height:0;border-width:4px;border-radius:12px / 10px;
+}
+.broadcast-console #tv-display:not(.cinema-mode) .tv-picture video{
+ display:block;width:100%;height:100%;min-height:0;object-fit:cover;object-position:center;
+}
+@media(max-width:900px){
+ .broadcast-console .receiver-panel.radio-receiver,.broadcast-console .receiver-panel.tv-receiver{
+  grid-template-rows:minmax(64px,.25fr) 72px minmax(112px,.75fr);
+ }
+ .broadcast-console .radio-tone-bank.receiver-knobs,.broadcast-console .tv-hifi-deck{
+  grid-template-columns:44px minmax(0,1fr) 44px;gap:9px;padding:3px 4px!important;
+ }
+ .broadcast-console .orange-rocker{width:40px;min-width:40px;height:48px;min-height:44px;font-size:11px}
+ .broadcast-console .radio-tone-bank>.chrome-mute,.broadcast-console .tv-hifi-deck>.chrome-mute{width:44px;font-size:11px}
+ .broadcast-console .volume-knob-control>.tone-label{font-size:13px;line-height:16px}
+ .broadcast-console #radio-volume-knob-value,.broadcast-console #v4-tv-volume-value{font-size:14px;line-height:16px}
+ .broadcast-console #radio-screen .crt-module,.broadcast-console #tv-screen #tv-display:not(.cinema-mode){
+  --cabinet-badge-height:48px;
+  --monitor-legend-height:14px;
+  /* The visible icons fit in the shorter strip while their tap targets stay 44px. */
+  --monitor-controls-height:36px;
+  padding:3px;gap:2px 3px;
+ }
+ .broadcast-console :is(#radio-screen .radio-lip-transport,#tv-screen .tv-actions){height:44px;gap:2px}
+ .broadcast-console :is(#radio-screen .radio-lip-transport,#tv-screen .tv-actions)>button{
+  position:relative;width:44px;height:44px;min-width:44px;min-height:44px;
+  padding:0;border:0;background:none;box-shadow:none;font-size:0;color:#e6dec1;
+ }
+ .broadcast-console :is(#radio-screen .radio-lip-transport,#tv-screen .tv-actions)>button::before{
+  content:"";position:absolute;inset:0;margin:auto;width:22px;height:22px;background:currentColor;
+  mask:var(--transport-icon) center / contain no-repeat;
+ }
+ .broadcast-console :is(#radio-prev,#radio-next,#tv-prev,#tv-next){
+  --transport-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 5h3v14H5zM19 5v14L9 12z'/%3E%3C/svg%3E");
+ }
+ .broadcast-console :is(#radio-next,#tv-next)::before{transform:scaleX(-1)}
+ .broadcast-console :is(#radio-play,#tv-toggle){
+  --transport-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 4v16l13-8z'/%3E%3C/svg%3E");
+ }
+ .broadcast-console :is(#radio-play[title="Pause"],#tv-toggle[aria-label="Pause"]){
+  --transport-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 4h4v16H6zM14 4h4v16h-4z'/%3E%3C/svg%3E");
+ }
+ .broadcast-console :is(#radio-screen .radio-lip-transport,#tv-screen .tv-actions)>button:focus-visible{
+  outline:2px solid #ffce72;outline-offset:-3px;
+ }
+ .broadcast-console .crt-module>.module-legend{font-size:11px;line-height:14px;letter-spacing:0}
+ .broadcast-console .crt-module>.module-legend>span:last-child{font-size:10px}
+ .broadcast-console #radio-screen .radio-art-caption h1{font-size:15px;line-height:1.2}
+ .broadcast-console #radio-screen .radio-art-caption p{font-size:12px;line-height:1.25}
+ .broadcast-console #tv-display .fullscreen-titlebar{top:24px;right:12px;font-size:15px;line-height:1.2}
+ .broadcast-console #tv-display .fullscreen-titlebar .crt-osd-channel,
+ .broadcast-console #tv-display .fullscreen-titlebar #fullscreen-channel-country{font-size:12px!important}
+ .broadcast-console .radio-tuning-card b{font-size:14px;line-height:1.15}
+ .broadcast-console .hardware-filter-bar .hardware-filter{font-size:12px}
+ .broadcast-console .bottom-nav .nav-item{font-size:12px}
+ .broadcast-console .crt-module>.module-options>summary{
+  width:80px;font-size:12px;border:0;background:transparent;
+ }
+ .broadcast-console .radio-display>.cassette-counter{
+  left:90px;border:0;background:none;box-shadow:none;
+ }
+ .broadcast-console .radio-display .cassette-counter>.counter-slot{border:0}
+ .broadcast-console #radio-screen .ticker-headline,.broadcast-console #radio-screen .ticker-static{font-size:16px}
+}
+@media(max-width:900px) and (max-height:620px) and (orientation:portrait){
+ .broadcast-console .receiver-panel.radio-receiver,.broadcast-console .receiver-panel.tv-receiver{grid-template-rows:60px 72px minmax(0,1fr)}
+}
+@media(max-height:590px) and (orientation:landscape){
+ .broadcast-console .receiver-panel.radio-receiver,.broadcast-console .receiver-panel.tv-receiver{grid-template-rows:minmax(50px,.24fr) 72px minmax(0,.76fr)}
+ .broadcast-console .radio-tone-bank.receiver-knobs,.broadcast-console .tv-hifi-deck{grid-template-columns:40px minmax(0,1fr) 44px;gap:6px;padding:3px!important}
+}
+
+/* 4.1.2: vertical milling on the silver roller and proportional monochrome TV. */
+.broadcast-console .volume-dial.thumbwheel-dial::before{
+ background:
+  linear-gradient(0deg,#434c53,#939fa7 16%,#e4e9ec 40%,#f5f7f8 49%,#a8b2ba 70%,#4a545d),
+  repeating-linear-gradient(90deg,#eff5f7 0 1px,#66737c 1px 2px,#c4cdd3 2px 4px);
+ background-blend-mode:multiply;background-size:100% 100%,4px 100%;
+ background-position:0 0,var(--thumbwheel-offset,0px) 0;
+}
+.broadcast-console #tv-display:not(.cinema-mode) .tv-picture video{
+ object-fit:contain;object-position:center;filter:grayscale(1);
+}
+.broadcast-console #tv-display:not(.cinema-mode) .tv-picture iframe{filter:grayscale(1)}
+.broadcast-console #tv-display.cinema-mode .tv-picture video,
+.broadcast-console #tv-display.cinema-mode .tv-picture iframe,
+.broadcast-console #tv-video:fullscreen{filter:none;object-fit:contain}
+
+/* 4.1.9: supplied silver-cylinder design, scoped to the existing player hooks. */
+/* Tape stays in the cassette when the bare playback head retracts. */
+.broadcast-console .radio-art .cassette-playback-head::after{display:none;opacity:0}
+.broadcast-console .radio-art .receiver-station-artwork[data-kind=cassette][data-playing=true][data-engaged=true]:not(.cassette-flipping) .cassette-playback-head::after{display:block;opacity:1}
+/* Keep mesh clear of the ticker, above the grille and beneath station artwork. */
+.broadcast-console #radio-screen .radio-art>.sound-rays[data-pattern=mesh]{
+ display:block;visibility:visible;z-index:3;top:auto;bottom:30px;left:0;right:0;
+ width:100%;height:30%;min-height:55px;max-height:160px;filter:none;
+ background:linear-gradient(transparent,#03101899);pointer-events:none;
+}
+.broadcast-console .radio-transport-stack .volume-knob-control,
+.broadcast-console .tv-hifi-deck>.volume-knob-control{
+ width:100%;max-width:220px;margin-inline:auto;justify-self:center;
+ grid-template-rows:16px 64px;gap:4px 8px;align-content:center;
+}
+.broadcast-console .volume-knob-control>.tone-label{color:#d4a54a;letter-spacing:.15em}
+.broadcast-console #radio-volume-knob-value,.broadcast-console #v4-tv-volume-value{color:#d4a54a}
+.broadcast-console .volume-dial.thumbwheel-dial{
+ position:relative;width:100%;height:64px;min-height:64px;max-height:64px;
+ background:radial-gradient(ellipse at center,#141517 0%,#070707 80%);
+ border-radius:8px;padding:0 8px;border:1.5px solid #463b2b;
+ box-shadow:inset 0 10px 18px #000000fa,inset 0 -10px 18px #000000fa,0 1px 0 #ffdc9614;
+}
+.broadcast-console .volume-dial.thumbwheel-dial::before,
+.broadcast-console .volume-dial.thumbwheel-dial::after{content:none;display:none}
+.broadcast-console .thumbwheel-dial>.indicator-pointer{
+ position:absolute;top:-10px;left:50%;transform:translateX(-50%);
+ width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;
+ border-top:8px solid #d4a54a;filter:drop-shadow(0 1px 2px #000e);z-index:6;pointer-events:none;
+}
+.broadcast-console .thumbwheel-dial>.steel-thumb-wheel{
+ position:absolute;left:8px;right:8px;top:50%;transform:translateY(-50%);
+ height:34px;border-radius:5px;overflow:hidden;pointer-events:none;
+ background:
+  linear-gradient(90deg,#000000fa 0%,#000000d9 10%,#0f121659 24%,#ebf5ff52 50%,#0f121659 76%,#000000d9 90%,#000000fa 100%),
+  linear-gradient(180deg,#1e2226 0%,#8a95a0 22%,#eef5fc 50%,#7a848e 78%,#16191c 100%);
+ box-shadow:0 0 14px #d2e8ff38,0 6px 12px #000000f2,0 -4px 10px #000e,inset 0 1px 1px #ffffff8c,inset 0 -1px 2px #000000d9;
+}
+.broadcast-console .steel-thumb-wheel>.knurl-texture{
+ position:absolute;inset:0 -40px;
+ background-image:repeating-linear-gradient(90deg,#0a0c0fb8 0px,#0a0c0fb8 2px,#f5faff4d 2px,#f5faff4d 5px);
+ transform:translateX(var(--thumbwheel-offset,0px));will-change:transform;
+}
+.broadcast-console .steel-thumb-wheel>.end-shadows{
+ position:absolute;inset:0;pointer-events:none;
+ background:linear-gradient(90deg,#030304 0%,#030304d1 12%,#03030440 26%,transparent 42% 58%,#03030440 74%,#030304d1 88%,#030304 100%);
+}
+.broadcast-console .thumbwheel-dial>#radio-volume-knob,.broadcast-console .thumbwheel-dial>#v4-tv-volume{z-index:4}
+.broadcast-console .receiver-panel.radio-receiver,.broadcast-console .receiver-panel.tv-receiver{
+ grid-template-rows:minmax(72px,.24fr) 104px minmax(0,.76fr);
+}
+@media(max-width:900px){
+ .broadcast-console .radio-transport-stack .volume-knob-control,.broadcast-console .tv-hifi-deck>.volume-knob-control{max-width:204px}
+ .broadcast-console .receiver-panel.radio-receiver,.broadcast-console .receiver-panel.tv-receiver{grid-template-rows:minmax(64px,.25fr) 94px minmax(0,.75fr)}
+}
+@media(max-width:900px) and (max-height:620px) and (orientation:portrait){
+ .broadcast-console .receiver-panel.radio-receiver,.broadcast-console .receiver-panel.tv-receiver{grid-template-rows:60px 94px minmax(0,1fr)}
+}
+@media(max-height:590px) and (orientation:landscape){
+ .broadcast-console .receiver-panel.radio-receiver,.broadcast-console .receiver-panel.tv-receiver{grid-template-rows:minmax(50px,.24fr) 94px minmax(0,.76fr)}
+}
+
+/* 4.1.14: smaller mobile socket, mechanically coupled reel hubs and tape lift. */
+@media(max-width:900px){
+ .broadcast-console .radio-transport-stack .volume-knob-control,
+ .broadcast-console .tv-hifi-deck>.volume-knob-control{max-width:148px;grid-template-rows:16px 44px;gap:4px 6px}
+ .broadcast-console .volume-dial.thumbwheel-dial{height:44px;min-height:44px;max-height:44px;border-radius:5px}
+ .broadcast-console .thumbwheel-dial>.steel-thumb-wheel{height:24px;left:6px;right:6px;border-radius:4px}
+ .broadcast-console .receiver-panel.radio-receiver,.broadcast-console .receiver-panel.tv-receiver{grid-template-rows:minmax(64px,.25fr) 74px minmax(0,.75fr)}
+}
+@media(max-width:900px) and (max-height:620px) and (orientation:portrait){
+ .broadcast-console .receiver-panel.radio-receiver,.broadcast-console .receiver-panel.tv-receiver{grid-template-rows:60px 74px minmax(0,1fr)}
+}
+@media(max-width:900px) and (max-height:590px) and (orientation:landscape){
+ .broadcast-console .receiver-panel.radio-receiver,.broadcast-console .receiver-panel.tv-receiver{grid-template-rows:minmax(50px,.24fr) 74px minmax(0,.76fr)}
+}
+.broadcast-console .radio-art .cassette-player{
+ animation:none!important;
+}
+.broadcast-console .radio-art .cassette-flipping .cassette-player{animation-play-state:paused!important}
+.broadcast-console .radio-art .cassette-player .cassette-reel i,
+.broadcast-console .radio-art .cassette-player .cassette-spindle-drive>i{
+ animation:none!important;transform:rotate(var(--cassette-drive-angle,0deg))!important;
+}
+.broadcast-console .radio-art .cassette-spindle-drive{top:55%;width:12%}
+.broadcast-console .radio-art .spindle-drive-left{left:29.2%}
+.broadcast-console .radio-art .spindle-drive-right{left:70.8%}
+.broadcast-console .radio-art .receiver-station-artwork[data-kind=cassette][data-engaged=true] .cassette-spindle-drive{
+ transform:translate(-50%,-50%) translateZ(5px) scale(1);
+}
+/* Three tapered drive tips fit between the cassette hub teeth. */
+.broadcast-console .radio-art .cassette-spindle-drive>i{
+ inset:6%;border-radius:0;
+ clip-path:polygon(73% 10%,74% 50%,73% 90%,38% 71%,4% 50%,38% 29%);
+ background:linear-gradient(145deg,#c2cbc0,#748078 53%,#454e47);
+ box-shadow:none;
+}
+/* Tape belongs to the cassette opening, never to the retracting head. */
+.broadcast-console .radio-art .cassette-playback-head::after{display:none!important;content:none!important}
+.broadcast-console .radio-art .cassette-player .cassette-bottom-tape{
+ inset:0;width:100%;height:100%;background:none;box-shadow:none;animation:none!important;
+}
+.cassette-contact-tape{display:block;width:100%;height:100%;overflow:visible}
+.cassette-contact-tape path{
+ fill:none;stroke-linejoin:round;transition:d .15s ease-out;
+ d:path("M0 42H18Q24 42 29 42Q50 42 71 42Q76 42 82 42H100");
+}
+.receiver-station-artwork[data-engaged=true][data-head-contact=true]:not(.cassette-flipping) .cassette-contact-tape path{
+ d:path("M0 42H18Q24 42 29 23Q50 10 71 23Q76 42 82 42H100");
+}
+.cassette-contact-tape .tape-contact-base{stroke:#2f1b0e;stroke-width:6}
+.cassette-contact-tape .tape-contact-edge{stroke:#9a6d3f;stroke-width:1.5}
+.cassette-contact-tape .tape-contact-travel{stroke:#c49a6055;stroke-width:2;stroke-dasharray:5 14;animation:cassette-contact-travel .7s linear infinite;animation-play-state:var(--artwork-play-state,paused)}
+@keyframes cassette-contact-travel{to{stroke-dashoffset:-38}}
+
+/* 4.1.16: the default/paused head is down; only confirmed playback raises it. */
+.broadcast-console .radio-art .receiver-station-artwork[data-kind=cassette] .cassette-head-assembly{
+ transform:translateY(0)!important;
+}
+.broadcast-console .radio-art .receiver-station-artwork[data-kind=cassette][data-playing=true][data-engaged=true]:not(.cassette-flipping) .cassette-head-assembly{
+ transform:translateY(-60%)!important;
+}
+
+/* 4.1.18: grooves pressed into the surrounding faceplate, with no black insert. */
+.broadcast-console #radio-screen .station-tuner-dial,
+.broadcast-console #tv-screen .station-tuner-dial{
+ border:2px solid #8b987b88;border-radius:50%;
+ background:
+  radial-gradient(circle,#ffffff03 0 76%,#a8b9941f 82%,#4b5c3d33 92%,#c3d0b22b 100%),
+  repeating-radial-gradient(circle,#ffffff18 0 1px,#26341b55 1px 2px,transparent 2px 4px,#b0bfa033 4px 5px),
+  repeating-linear-gradient(0deg,#ffffff03 0 1px,transparent 1px 3px);
+ box-shadow:inset 0 5px 8px #19231399,inset 0 -3px 4px #c6d2b744,inset 3px 0 5px #22321c66,inset -3px 0 5px #22321c66,0 0 0 1px #34432b66,0 1px 0 2px #d4dfc526;
+}
+.broadcast-console #radio-screen .station-tuner-face{
+ inset:12%;border:2px solid #d3dbe0;
+ box-shadow:inset 0 3px 3px #ffffffbb,inset 0 -4px 5px #334139aa,0 3px 0 2px #48544e,0 6px 7px 1px #182613bb;
+}
+.broadcast-console #tv-screen .tv-channel-selector .station-tuner-face{
+ box-shadow:inset 0 3px 3px #ffffffaa,inset 0 -4px 5px #24302acc,0 3px 0 2px #39433d,0 6px 7px #182613bb;
+}
+
+/* 4.1.19: engraved brushed-steel genre selector keys, as on a hi-fi receiver. */
+.broadcast-console #radio-screen .receiver-matrix>.hardware-filter-bar,
+.broadcast-console #tv-screen .remote-shortcuts>.hardware-filter-bar{
+ gap:2px;padding:2px;border:1px solid #68736c;border-radius:4px;
+ background:linear-gradient(#273129,#455047);box-shadow:inset 0 2px 3px #15231799,0 1px #d5dfc72b;
+}
+.broadcast-console .hardware-filter-bar .hardware-filter{
+ display:grid;place-items:center;min-width:0;height:100%;min-height:0;
+ padding:6px 1px 0;border:1px solid #a1aaa9;border-right-color:#5f6b68;border-bottom-color:#56615d;border-radius:1px;
+ background:repeating-linear-gradient(0deg,#ffffff09 0 1px,#4754530a 1px 2px),linear-gradient(180deg,#e7eceb,#b7c0be 22%,#dce2df 48%,#a5afaa 83%,#86938c);
+ color:#27322d;font:600 clamp(11px,.85vw,15px)/1.1 var(--type-ui);letter-spacing:.035em;
+ text-shadow:0 1px #fff9;white-space:nowrap;
+ box-shadow:inset 0 1px #fff,inset 1px 0 #ffffff88,0 2px 2px #172318aa;
+}
+.broadcast-console .hardware-filter-bar .hardware-filter::before{content:none;display:none}
+.broadcast-console .hardware-filter-bar .hardware-filter::after{
+ top:5px;bottom:auto;left:calc(50% - 8px);right:auto;width:16px;height:2px;
+ background:#62736a;border-radius:1px;box-shadow:inset 0 1px 1px #24382c99;
+}
+.broadcast-console .hardware-filter-bar .hardware-filter.selected{
+ color:#17261d;background:repeating-linear-gradient(0deg,#ffffff0b 0 1px,transparent 1px 2px),linear-gradient(#a5b0a9,#d6ded7 50%,#a9b7ac);
+ box-shadow:inset 0 2px 3px #47594b99,inset 0 -1px #f0f7ed88;transform:translateY(1px);
+}
+.broadcast-console .hardware-filter-bar .hardware-filter.selected::after{
+ background:#ffe09a;box-shadow:0 0 5px #ffb300,inset 0 1px #fff5d7;
+}
+.broadcast-console .hardware-filter-bar .hardware-filter[data-console-filter=News].selected::after,
+.broadcast-console .hardware-filter-bar .hardware-filter[data-console-filter=Music].selected::after{
+ background:#a9f2b2;box-shadow:0 0 5px #38e54d,inset 0 1px #e2ffe6;
+}
+.broadcast-console .hardware-filter-bar .hardware-filter:active{
+ transform:translateY(2px);box-shadow:inset 0 2px 4px #405344aa;
+}
+.broadcast-console .hardware-filter-bar .hardware-filter:focus-visible{outline:3px solid #ffb000;outline-offset:2px;z-index:2}
+@media(max-width:900px){
+ .broadcast-console .hardware-filter-bar .hardware-filter{font-size:11px;letter-spacing:0}
+}
+
+/* 4.1.20: desktop news sits evenly inside the glass, on the display's own grille. */
+@media(min-width:901px){
+ .broadcast-console #radio-screen .radio-art>.radio-news-ticker{
+  left:12px;right:12px;bottom:8px;width:auto;height:44px;min-height:44px;
+  margin:0;padding:2px 0;border:0;border-radius:0;background:transparent;box-shadow:none;
+ }
+ .broadcast-console #radio-screen .ticker-window,
+ .broadcast-console #radio-screen .ticker-track{height:100%;margin:0;padding:0;background:transparent}
+ .broadcast-console #radio-screen .ticker-group{height:100%;align-items:center}
+ .broadcast-console #radio-screen .ticker-headline,
+ .broadcast-console #radio-screen .ticker-static{
+  display:inline-flex;align-items:center;height:100%;margin:0;padding-block:0;
+  font-size:clamp(18px,1.55vw,30px);line-height:1.2;
+ }
+ .broadcast-console #radio-screen .radio-art>.sound-rays[data-pattern=mesh]{bottom:60px}
+}
+
+/* 4.1.21: mobile presentation only. Existing carousel geometry and hooks remain. */
+@media(max-width:900px){
+ .broadcast-console :is(#radio-screen,#tv-screen) :is(.receiver-readout,.tv-receiver-readout).vfd-window{
+  padding-block:1px;
+ }
+ .broadcast-console :is(#radio-screen,#tv-screen) .radio-tuning-window{
+  container-type:inline-size;min-height:54px;margin:0;border-radius:7px;
+  background:linear-gradient(#172114,#0e190d);
+ }
+ .broadcast-console :is(#radio-screen,#tv-screen) .radio-tuning-scale,
+ .broadcast-console :is(#radio-screen,#tv-screen) .radio-tuning-window::before,
+ .broadcast-console :is(#radio-screen,#tv-screen) .radio-tuning-window::after{
+  display:none;content:none;
+ }
+ .broadcast-console :is(#radio-screen,#tv-screen) .radio-tuning-track{
+  top:10px;bottom:0;gap:8px;align-items:stretch;
+ }
+ .broadcast-console :is(#radio-screen,#tv-screen) .radio-tuning-card{
+  flex:0 0 82cqw;width:82cqw;max-width:none;min-width:0;
+  height:100%;min-height:44px;margin:0;padding:4px 6px;
+  grid-template-columns:18px 22px minmax(0,1fr);gap:6px;
+  border-radius:8px;text-align:left;
+ }
+ .broadcast-console :is(#radio-screen,#tv-screen) .radio-tuning-card .tuning-card-number{
+  align-self:center;font-size:11px;line-height:1;text-align:center;
+ }
+ .broadcast-console :is(#radio-screen,#tv-screen) .radio-tuning-card .tuning-card-logo{
+  display:grid;width:22px;height:22px;border-radius:4px;
+ }
+ .broadcast-console :is(#radio-screen,#tv-screen) .radio-tuning-card b{
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
+  overflow:hidden;overflow-wrap:anywhere;white-space:normal;
+  font-size:14px;line-height:1.15;letter-spacing:0;
+ }
+ .broadcast-console :is(#radio-screen,#tv-screen) .radio-tuning-card:not(.tuner-centred){opacity:.58}
+ .broadcast-console :is(#radio-screen,#tv-screen) .radio-tuning-card.tuner-centred{
+  opacity:1;box-shadow:inset 0 0 0 1px #ffffff77,0 0 4px #ffffff66;
+ }
+ .broadcast-console :is(#radio-screen,#tv-screen) .radio-tuning-window>.radio-tuning-needle{
+  width:3px;opacity:.8;
+ }
+}
+
+/* 4.1.22: mobile control deck follows the complete main tuner/genre module. */
+@media(max-width:900px){
+ .broadcast-console .receiver-panel.radio-receiver,
+ .broadcast-console .receiver-panel.tv-receiver{
+  grid-template-rows:minmax(64px,.25fr) minmax(0,.75fr) 74px;
+ }
+ .broadcast-console #radio-screen .receiver-panel>.receiver-readout,
+ .broadcast-console #tv-screen .receiver-panel>.tv-receiver-readout{grid-column:1;grid-row:1}
+ .broadcast-console #radio-screen .receiver-panel>.receiver-matrix,
+ .broadcast-console #tv-screen .receiver-panel>.remote-shortcuts{grid-column:1;grid-row:2}
+ .broadcast-console #radio-screen .receiver-panel>.radio-tone-bank,
+ .broadcast-console #tv-screen .receiver-panel>.tv-hifi-deck{grid-column:1;grid-row:3}
+}
+@media(max-width:900px) and (max-height:620px) and (orientation:portrait){
+ .broadcast-console .receiver-panel.radio-receiver,
+ .broadcast-console .receiver-panel.tv-receiver{grid-template-rows:60px minmax(0,1fr) 74px}
+}
+@media(max-width:900px) and (max-height:590px) and (orientation:landscape){
+ .broadcast-console .receiver-panel.radio-receiver,
+ .broadcast-console .receiver-panel.tv-receiver{grid-template-rows:minmax(50px,.24fr) minmax(0,.76fr) 74px}
+}
+
+/* 4.1.23: warm sepia tube with shaded edges; fullscreen remains full colour. */
+.broadcast-console #tv-display:not(.cinema-mode) .tv-picture video,
+.broadcast-console #tv-display:not(.cinema-mode) .tv-picture iframe{
+ filter:sepia(1) saturate(.55) contrast(1.06) brightness(.94);
+}
+.broadcast-console #tv-display:not(.cinema-mode) .tv-picture{position:relative;overflow:hidden}
+.broadcast-console #tv-display:not(.cinema-mode) .tv-picture::after{
+ content:"";display:block;position:absolute;inset:0;z-index:5;pointer-events:none;
+ border-radius:inherit;
+ background:
+  radial-gradient(ellipse at center,transparent 35%,#2a180d22 62%,#160b07b3 100%),
+  linear-gradient(90deg,#160b0766,transparent 16% 84%,#160b0766),
+  repeating-linear-gradient(0deg,#1a0c060c 0 1px,transparent 1px 3px);
+ box-shadow:inset 0 0 32px #1e100b99;
+}
+.broadcast-console #tv-display.cinema-mode .tv-picture::after{display:none}
+.broadcast-console #tv-display.cinema-mode .tv-picture video,
+.broadcast-console #tv-display.cinema-mode .tv-picture iframe,
+.broadcast-console #tv-display:not(.cinema-mode) .tv-picture video:fullscreen{filter:none}
+
+/* 4.1.24: centred vintage instrument lettering, scaled to each control. */
+.broadcast-console{
+ --type-instrument:"Copperplate Gothic","Copperplate","Book Antiqua",Georgia,"Times New Roman",serif;
+}
+.broadcast-console .volume-knob-control>.tone-label{
+ grid-column:1 / -1;grid-row:1;justify-self:stretch;align-self:center;
+ width:100%;margin:0;padding:0 38px;text-align:center;
+ font:700 clamp(12px,.88vw,16px)/16px var(--type-instrument);
+ letter-spacing:.13em;text-transform:uppercase;color:#d8bc80;
+ text-shadow:0 1px 1px #07100bc9,0 -1px #ffffff12;white-space:nowrap;
+}
+.broadcast-console #radio-volume-knob-value,.broadcast-console #v4-tv-volume-value{
+ grid-column:2;grid-row:1;align-self:center;justify-self:end;
+ margin:0;padding:0 2px;font:600 clamp(11px,.75vw,14px)/16px var(--type-data);
+ letter-spacing:0;text-align:right;
+}
+.broadcast-console .large-radio-tuner::after{
+ position:static;grid-row:1;grid-column:1;align-self:center;justify-self:stretch;
+ width:100%;margin:0;padding:0;transform:none;text-align:center;
+ font:700 clamp(12px,.88vw,16px)/16px var(--type-instrument);
+ letter-spacing:.15em;text-indent:.15em;color:#d8bc80;
+ text-shadow:0 1px 1px #07100bc9,0 -1px #ffffff12;
+}
+.broadcast-console .large-radio-tuner .station-tuner-dial::after{
+ font:700 clamp(6px,calc(var(--station-diameter)*.065),18px)/1 var(--type-instrument);
+ letter-spacing:.08em;text-indent:.08em;text-align:center;
+}
+@media(max-width:900px){
+ .broadcast-console .volume-knob-control>.tone-label{
+  padding-inline:32px;font-size:clamp(10px,2.8vw,12px);line-height:16px;letter-spacing:.1em;
+ }
+ .broadcast-console #radio-volume-knob-value,.broadcast-console #v4-tv-volume-value{font-size:11px;line-height:16px}
+ .broadcast-console .large-radio-tuner::after{font-size:12px;line-height:12px;letter-spacing:.12em}
+}
+@media(max-height:590px) and (orientation:landscape){
+ .broadcast-console .large-radio-tuner::after{font-size:10px;line-height:10px}
+}
+
+/* 4.1.25: fading in-picture fullscreen opens the complete TV control shell. */
+.broadcast-console #tv-display .tv-inline-fullscreen{
+ position:absolute;right:10px;bottom:42px;z-index:20;
+ display:grid;place-items:center;width:44px;min-width:44px;height:44px;min-height:44px;padding:10px;
+ border:1px solid #ffffff88;border-radius:5px;background:#10161399;color:#fff;
+ box-shadow:0 2px 5px #0009;opacity:0;pointer-events:none;transition:opacity .22s ease;
+}
+.broadcast-console #tv-display.inline-controls-visible .tv-inline-fullscreen,
+.broadcast-console #tv-display:not(.is-playing) .tv-inline-fullscreen,
+.broadcast-console #tv-display .tv-inline-fullscreen:focus-visible{
+ opacity:1;pointer-events:auto;
+}
+.broadcast-console #tv-display.cinema-mode .tv-inline-fullscreen{display:none}
+.broadcast-console #tv-video::-webkit-media-controls-fullscreen-button{display:none}
+
+.broadcast-console #radio-screen .crt-module>.radio-news-ticker{display:none}
+.broadcast-console .crt-module>.cabinet-badge{
+ grid-column:1;
+ grid-row:3;
+ display:grid;
+ grid-template-columns:minmax(0,1fr) minmax(0,auto) minmax(0,1fr);
+ align-items:center;
+ column-gap:clamp(6px,1.5vw,16px);
+ width:100%;min-width:0;
+}
+.broadcast-console .cabinet-badge::before,
+.broadcast-console .cabinet-badge::after{
+ content:"";grid-row:1;justify-self:center;pointer-events:none;
+ width:min(100%,116px);
+ height:clamp(20px,calc(var(--cabinet-badge-height)*.55),38px);
+ border:1px solid #8b957d59;border-radius:4px;
+ background:
+  radial-gradient(circle at center,#080d08 0 1px,#a0ab8c58 1.25px,transparent 1.65px) center / 5px 5px,
+  linear-gradient(#303a2d,#20271d);
+ box-shadow:inset 0 1px 3px #060a06cc,0 1px #b0ba9c26;
+}
+.broadcast-console .cabinet-badge::before{grid-column:1}
+.broadcast-console .cabinet-badge::after{grid-column:3}
+@media(min-width:901px){
+ .broadcast-console .cabinet-badge::before,
+ .broadcast-console .cabinet-badge::after{
+  width:min(100%,180px);
+  height:clamp(48px,calc(var(--cabinet-badge-height)*.7),62px);
+  border:0;border-radius:0;box-shadow:none;
+  background:radial-gradient(circle at center,#080d08 0 1.25px,#b3bea163 1.5px,transparent 2px) center / 6px 6px;
+ }
+}
+.broadcast-console .cabinet-badge>img{
+ grid-column:2;grid-row:1;justify-self:center;
+ display:block;
+ width:auto;
+ height:var(--cabinet-badge-height);
+ max-width:100%;
+ object-fit:contain;
+ filter:drop-shadow(0 1px 1px #000a);
+}
+.broadcast-console #tv-display:is(.cinema-mode,:fullscreen)>.cabinet-badge{display:none}
+@media(max-width:900px) and (max-height:590px) and (orientation:landscape){
+ .broadcast-console #radio-screen .crt-module,
+ .broadcast-console #tv-screen #tv-display:not(.cinema-mode){
+  --cabinet-badge-height:44px;
+ }
+}
+
+/* IEC cassette artwork fitted to the glass, with the existing transport behind it. */
+.broadcast-console .radio-art .standard-cassette{
+ --cassette-bridge-finish:linear-gradient(#323438,#222326);
+ width:min(90cqw,124cqh,472px);
+ aspect-ratio:472 / 300;
+}
+.standard-cassette .radio-cassette{
+ border-color:#141517;border-radius:clamp(5px,3cqw,14px);
+}
+.standard-cassette .cassette-shell{
+ background:linear-gradient(165deg,#35373b,#27282b 45%,#1d1e21);
+ box-shadow:inset 0 1px 1px #ffffff29,inset 0 -2px 4px #000c;
+ -webkit-mask-size:100% 100%,58.5% 22%;
+ mask-size:100% 100%,58.5% 22%;
+ -webkit-mask-position:center,center 47.9%;
+ mask-position:center,center 47.9%;
+}
+.standard-cassette .cassette-shell::after{
+ inset:7.3% 5.9% 30.7%;border-radius:clamp(3px,1.7cqw,8px);
+ background:linear-gradient(#f2efe9 41%,#f3c46b 41%);
+ box-shadow:inset 0 1px 3px #0006;
+}
+.broadcast-console .standard-cassette .cassette-screw{
+ width:2.8%;min-width:3px;z-index:6;
+ background:radial-gradient(circle at 35% 35%,#d6d9de,#6b7078 70%,#2d3034);
+}
+.broadcast-console .standard-cassette .cassette-screw::after{
+ clip-path:polygon(40% 0,60% 0,60% 40%,100% 40%,100% 60%,60% 60%,60% 100%,40% 100%,40% 60%,0 60%,0 40%,40% 40%);
+}
+.broadcast-console .standard-cassette .cassette-screw.bottom-center{
+ bottom:21%;left:50%;transform:translateX(-50%);
+}
+.broadcast-console .radio-art .standard-cassette .cassette-label{
+ inset:11% 9% 70%;overflow:visible;
+}
+.broadcast-console .radio-art .standard-cassette .cassette-side{
+ top:4%;left:0;color:#2b2c2f;font-size:clamp(8px,5.5cqw,26px);
+}
+.broadcast-console .radio-art .standard-cassette .artwork-logo{
+ left:10%;top:3%;width:12.4%;height:87%;aspect-ratio:1;
+ border-radius:3px;border:1px solid #0004;
+ background:linear-gradient(135deg,#5a7d6a,#8d6e5c);color:#fff;
+ font-size:clamp(6px,2.4cqw,11px);
+}
+.broadcast-console .radio-art .standard-cassette .artwork-station-name{
+ inset:3% 2% 10% 26%;height:auto;align-content:center;
+ color:#2c2d30;font:italic 600 clamp(7px,4.25cqw,20px)/1.05 var(--type-ui);
+ border-block:1px solid #0004;
+}
+.standard-cassette-markings{
+ position:absolute;top:36%;right:8%;width:12%;text-align:right;color:#2b2c2f;
+ font:700 clamp(4px,1.5cqw,7px)/1.15 var(--type-data);white-space:nowrap;
+}
+.standard-cassette-markings small{font:inherit}
+.standard-cassette-markings b{
+ display:block;color:#fff;font:800 clamp(8px,5.5cqw,26px)/1.1 var(--type-ui);
+}
+.standard-cassette-spec{
+ position:absolute;left:9.5%;bottom:33%;color:#3a352c;
+ font:700 clamp(4px,1.6cqw,8px)/1 var(--type-data);white-space:nowrap;
+}
+.standard-cassette .cassette-window{
+ inset:37.3% 20.75% auto;height:22%;border:1px solid #3a3c40;
+ border-radius:clamp(3px,1.3cqw,6px);
+ background:radial-gradient(ellipse,#2a2e28,#141715 72%);
+ box-shadow:inset 0 4px 12px #000c;
+}
+.standard-cassette .cassette-window::after{
+ content:"";position:absolute;inset:0;z-index:5;pointer-events:none;
+ background:linear-gradient(115deg,#ffffff1f,transparent 45%,#ffffff0d);
+}
+.standard-cassette .cassette-reel{
+ width:36%;border:clamp(1px,.55cqw,3px) solid #d8ddd9;
+ background:radial-gradient(circle,#222521 0 29%,#8e9490 31%,#eef2ef 33% 52%,#8e9490 54%,#4a4d4c 56%,#222521 58%);
+ box-shadow:0 0 0 1px #5c5e60,0 0 8px #000b;
+}
+.standard-cassette .reel-left{left:-4%}
+.standard-cassette .reel-right{right:-4%}
+.broadcast-console .radio-art .standard-cassette .cassette-reel::before{
+ background:repeating-radial-gradient(circle,#3c2618 0 2px,#26160d 2px 3.5px);
+}
+.broadcast-console .radio-art .standard-cassette .cassette-reel i{
+ inset:26%;background:repeating-conic-gradient(#dfe4e0 0deg 13deg,transparent 13deg 60deg);
+ -webkit-mask:none;mask:none;
+}
+.broadcast-console .radio-art .standard-cassette .cassette-reel i::after{
+ inset:21%;width:auto;height:auto;
+ background:radial-gradient(circle at 35% 35%,#515853,#1b1e1c);box-shadow:none;
+}
+.broadcast-console .radio-art .standard-cassette .cassette-spindle-drive{
+ top:48.3%;width:10.6%;
+}
+.broadcast-console .radio-art .standard-cassette .spindle-drive-left{left:28.9%}
+.broadcast-console .radio-art .standard-cassette .spindle-drive-right{left:71.1%}
+.standard-cassette .cassette-foot{
+ inset:auto 17.4% 0;height:18%;padding:0 7%;
+ clip-path:polygon(8% 0,92% 0,100% 100%,0 100%);border-color:#ffffff20;
+ background:var(--cassette-bridge-finish);box-shadow:none;
+}
+.standard-cassette .cassette-foot i{width:5.5%;background:#0d0e10;border:0}
+.standard-cassette .cassette-foot i:nth-child(2),
+.standard-cassette .cassette-foot i:nth-child(3){width:7%}
+.standard-cassette .cassette-head-opening{
+ bottom:5%;left:43.5%;width:13%;height:9%;border:0;background:#121315;
+}
+/* Foreground lip aligned with the head tip at the top of its existing travel. */
+.standard-cassette::after{
+ content:"";position:absolute;inset:83.5% 41.8% auto;height:4%;z-index:8;
+ /* Match the slice of the 18%-tall bridge that sits behind this lip. */
+ border-radius:0 0 2px 2px;
+ background:var(--cassette-bridge-finish) center 10.714% / 100% 450% no-repeat;
+ pointer-events:none;
+}
+.cassette-flipping .standard-cassette::after{visibility:hidden}
+/* Keep the visible tops of the guide pins at the shell's lower edge. */
+.standard-cassette .cassette-guide{
+ clip-path:inset(.42% 0 0);
+ transition:clip-path .55s cubic-bezier(.3,.05,.25,1)!important;
+}
+.receiver-station-artwork[data-playing=true][data-engaged=true]:not(.cassette-flipping) .standard-cassette .cassette-guide{
+ /* 60% of assembly travel is 75% of the guide's height. */
+ clip-path:inset(75.42% 0 0);
+}
+.cassette-flipping .standard-cassette .cassette-guide{transition-duration:.25s!important}
+
+/* The reference knob's four layers sit inside the existing station tuner. */
+.broadcast-console #radio-screen .station-tuner-dial,
+.broadcast-console #tv-screen .station-tuner-dial{
+ cursor:grab;
+ background:repeating-radial-gradient(circle,#192014 0 2px,#273020 2px 4px);
+ border:1px solid #a69c7840;box-shadow:inset 0 2px 8px #000c;
+}
+.broadcast-console :is(#radio-screen,#tv-screen) .station-tuner-dial:active{cursor:grabbing}
+#station-tuner-input,#tv-station-tuner-input{cursor:inherit}
+.broadcast-console .large-radio-tuner .station-tuner-dial::after,
+.broadcast-console #tv-screen .station-tuner-dial::before{content:none}
+.station-knob{
+ position:absolute;inset:0;pointer-events:none;
+}
+.tv-channel-selector .station-knob{inset:15%}
+.station-knob-skirt,.station-knob-grip,.station-knob-cap,.station-knob-medallion{
+ position:absolute;border-radius:50%;
+}
+.station-knob-skirt{
+ inset:7.3%;border:1px solid #3c4432;
+ background:conic-gradient(from 215deg,#63573d,#dfc88c 55deg,#7d6f4f 130deg,#3b3424 220deg,#cbb57c 305deg,#63573d);
+ box-shadow:0 5px 10px #000d,inset 0 1px 2px #fff9,inset 0 -2px 4px #14180fd9;
+}
+.station-knob-grip{
+ inset:14%;border:1px solid #232a1d;
+ background:repeating-conic-gradient(#131710 0deg 3deg,#4a5241 3deg 6deg);
+ box-shadow:0 3px 6px #000d,inset 0 0 6px #000e;
+ transform:rotate(var(--station-tuner-angle,0deg));
+}
+.station-knob-cap{
+ inset:20.7%;border:1px solid #596350;
+ background:conic-gradient(from 30deg,#9ea6a1,#eef2ef 48deg,#7d8580 115deg,#525954 195deg,#dce2de 275deg,#9ea6a1);
+ box-shadow:0 3px 6px #000b,inset 0 1px 3px #fffc,inset 0 -3px 6px #191e16bf;
+ transform:rotate(var(--station-tuner-angle,0deg));
+}
+.station-knob-medallion{
+ inset:23%;display:grid;place-items:center;
+ border:1px solid #5c4922;
+ background:conic-gradient(from 40deg,#9e7d3b,#ebd088 55deg,#8a6c31 135deg,#5c471e 215deg,#dfc278 300deg,#9e7d3b);
+ box-shadow:0 2px 4px #000a,inset 0 1px 2px #fffa;
+ color:#3d2e10;text-shadow:0 1px #fff7;
+ font:800 clamp(4px,calc(var(--station-diameter)*.055),15px)/1 var(--type-instrument);
+ letter-spacing:.08em;
+ transform:rotate(calc(0deg - var(--station-tuner-angle,0deg)));
+}
+.tv-channel-selector .station-knob-medallion{
+ font-size:clamp(3px,calc(var(--station-diameter)*.039),11px);
+}
+.station-knob-indicator{
+ position:absolute;top:8%;left:46%;width:8%;height:4%;min-height:1px;
+ border-radius:2px;background:#e63929;box-shadow:0 0 5px #e63929d9;
+}
+.tv-selector-numbers{z-index:1}
