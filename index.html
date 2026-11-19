@@ -17,7 +17,7 @@
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon.svg">
   <link rel="stylesheet" href="styles.css?v=4.1.7">
-  <link rel="stylesheet" href="receiver-responsive.css?v=4.1.86">
+  <link rel="stylesheet" href="receiver-responsive.css?v=4.1.72">
   <link rel="stylesheet" href="modern-theme.css?v=1.0.0">
   <link rel="stylesheet" href="vinyl-labels.css?v=1.0.1">
   <link rel="stylesheet" href="weathered-theme.css?v=1">
@@ -303,6 +303,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     dial?.querySelectorAll('.dial-led-arc i').forEach((led,n)=>led.classList.toggle('lit',n/12<=ratio));
   }
   let radioArtworkState=!audio.paused&&audio.readyState>=3?'playing':'paused';
+  const mobileLPPlayback=matchMedia('(hover:none) and (pointer:coarse)');
   let lastArtworkTime=Number(audio.currentTime)||0;
   let tvSignalPlaying=!video.paused&&video.readyState>=3,lastTVSignalTime=Number(video.currentTime)||0;
   const signalIsPlaying=(media,playing)=>Boolean(playing&&!media.paused&&!media.ended&&!document.hidden);
@@ -417,7 +418,11 @@ document.addEventListener('DOMContentLoaded',()=>{
     const panelCounter=document.querySelector('.radio-display>.cassette-counter');if(panelCounter)panelCounter.hidden=kind!=='cassette';
     const playing=radioArtworkState==='playing'&&!audio.paused&&!audio.ended;
     artwork.dataset.playing=String(playing);
-    if(playing)artwork._preparing=false;
+    if(playing){
+      artwork._preparing=false;
+      // Keep the phone's pickup on the groove through brief stream buffering.
+      if(kind==='lp'&&mobileLPPlayback.matches)artwork._mechanismReady=true;
+    }
     const engaged=kind==='cassette'?playing:Boolean(artwork._preparing||(!audio.paused&&!audio.ended&&(playing||artwork._mechanismReady)));
     artwork.dataset.engaged=String(engaged);
     if(!engaged)artwork.dataset.headContact='false';
@@ -568,7 +573,21 @@ document.addEventListener('DOMContentLoaded',()=>{
     const readout=document.querySelector(media===audio?'.receiver-readout':'.tv-receiver-readout');
     const buffering=()=>{if(media===audio)radioArtworkState='buffering';else tvSignalPlaying=false;if(!document.hidden)readout.classList.add('is-buffering');queue();};
     for(const name of ['waiting','stalled','loadstart'])media.addEventListener(name,buffering);
-    for(const name of ['playing','pause','ended','emptied'])media.addEventListener(name,event=>{if(media===audio)radioArtworkState=event.type==='playing'?'playing':'paused';else tvSignalPlaying=event.type==='playing';readout.classList.remove('is-buffering');queue();});
+    for(const name of ['playing','pause','ended','emptied'])media.addEventListener(name,event=>{
+      if(media===audio){
+        radioArtworkState=event.type==='playing'?'playing':'paused';
+        // Cue directly from confirmed playback, without waiting for the full UI refresh.
+        if(event.type==='playing'&&mobileLPPlayback.matches){
+          const artwork=$('radio-art').querySelector('.receiver-station-artwork[data-kind=lp]');
+          if(artwork){
+            artwork._mechanismReady=true;artwork._preparing=false;
+            artwork.dataset.playing='true';artwork.dataset.engaged='true';
+            artwork.style.setProperty('--artwork-play-state','running');
+          }
+        }
+      }else tvSignalPlaying=event.type==='playing';
+      readout.classList.remove('is-buffering');queue();
+    });
     media.addEventListener('volumechange',queue);media.addEventListener('play',queue);
   }
   // Advancing audio is definitive playback evidence, even if a browser omits

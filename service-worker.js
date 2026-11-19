@@ -1,8 +1,8 @@
 const CACHE_PREFIX = 'retroradtv-v4-';
-const CACHE_NAME = CACHE_PREFIX + '4.1.71';
+const CACHE_NAME = CACHE_PREFIX + '4.1.72';
 // Only the core shell is precached. Artwork and optional modules cache on demand.
 const APP_FILES = [
-  './index.html', './styles.css?v=4.1.7', './app.js?v=4.1.71',
+  './receiver-responsive.css?v=4.1.72', './index.html', './styles.css?v=4.1.7', './app.js?v=4.1.71',
   './stream-recovery.js?v=4.1.4', './volume-knob.js?v=4.1.9',
   './tone-controls.js?v=4.1.2', './station-category.js?v=2', './preset-defaults.js?v=4.1.70',
   './shattered-theme.css?v=1', './manifest.webmanifest', './icon.svg'

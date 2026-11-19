@@ -1442,3 +1442,25 @@ body.broadcast-console{
  .broadcast-console .hardware-filter-bar .hardware-filter{transition:none}
  .broadcast-console .orange-rocker .rocker-paddle{animation:none;transition:none}
 }
+
+
+/* 4.1.72 - phone LP pickup follows playback with a short independent cue. */
+@media (hover:none) and (pointer:coarse){
+ .broadcast-console .radio-art .vinyl-arm{
+  transition:transform .28s cubic-bezier(.2,.7,.3,1);
+  will-change:transform;backface-visibility:hidden;
+ }
+ .broadcast-console .radio-art .receiver-station-artwork[data-kind=lp][data-engaged=true] .vinyl-arm{
+  transform:rotate(20deg);
+ }
+ /* Groove tracking must not continually retarget the cueing transition. */
+ .broadcast-console .radio-art .vinyl-arm-tracking{
+  transform:rotate(var(--lp-tracking-angle,0deg));
+ }
+ .broadcast-console .radio-art .vinyl-cartridge{
+  transition:transform .1s ease,box-shadow .1s ease;
+ }
+ .broadcast-console .radio-art .receiver-station-artwork[data-kind=lp][data-engaged=true] .vinyl-cartridge{
+  transition-delay:.18s;
+ }
+}
