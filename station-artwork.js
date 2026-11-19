@@ -133,7 +133,7 @@
         decorate(card, kind, key, title, find);
       }
       for (const card of explore.querySelectorAll('.result-row')) {
-        decorate(card, card.dataset.resultKind, card.dataset.resultKey,
+        decorate(card.querySelector('.result-play') || card, card.dataset.resultKind, card.dataset.resultKey,
           card.querySelector('.result-copy b')?.textContent || '', find);
       }
     }

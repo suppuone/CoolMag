@@ -16,8 +16,12 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon.svg">
-  <link rel="stylesheet" href="styles.css?v=4.1.6">
-  <link rel="stylesheet" href="receiver-responsive.css?v=4.1.82">
+  <link rel="stylesheet" href="styles.css?v=4.1.7">
+  <link rel="stylesheet" href="receiver-responsive.css?v=4.1.86">
+  <link rel="stylesheet" href="modern-theme.css?v=1.0.0">
+  <link rel="stylesheet" href="vinyl-labels.css?v=1.0.1">
+  <link rel="stylesheet" href="weathered-theme.css?v=1">
+  <link rel="stylesheet" href="shattered-theme.css?v=1">
   <!-- Every new opening starts with Flowing Mesh. Settings can change this session. -->
   <script>
   window.retroV4VisualizerDefaultMesh=true;
@@ -25,15 +29,17 @@
   </script>
   <script defer src="https://cdn.jsdelivr.net/npm/hls.js@1.5.18/dist/hls.min.js"></script>
   <script defer src="onboarding.js?v=4.0.112"></script>
-  <script defer src="stream-recovery.js?v=4.1.1"></script>
+  <script defer src="stream-recovery.js?v=4.1.4"></script>
   <script defer src="tone-controls.js?v=4.1.2"></script>
   <script defer src="playback-mechanics.js?v=4.1.16"></script>
   <script defer src="volume-knob.js?v=4.1.9"></script>
   <script defer src="tv-auto-fullscreen.js?v=3.0.163"></script>
   <script defer src="audio-meter.js?v=4.1.13"></script>
   <script defer src="hardware-feedback.js?v=1.0.9"></script>
-  <script defer src="station-artwork.js?v=1.0.1"></script>
-  <script defer src="app.js?v=4.1.35"></script>
+  <script defer src="station-artwork.js?v=1.0.2"></script>
+  <script src="station-category.js?v=2"></script>
+  <script defer src="preset-defaults.js?v=4.1.70"></script>
+  <script defer src="app.js?v=4.1.71"></script>
 </head>
 <body class="broadcast-console">
 <section class="welcome-splash-v2 tuning-splash" id="welcome-splash-v2" role="dialog" aria-modal="true" aria-labelledby="tuning-title">
@@ -61,6 +67,7 @@
         <svg class="epaper-moon" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="#252721"/><path id="epaper-moon-light" fill="#eeeddf"/><circle cx="20" cy="20" r="17" fill="none" stroke="#252721" stroke-width="1"/></svg>
         <div><time id="epaper-date"></time><span id="epaper-phase"></span></div>
       </div>
+      <button id="theme-choice" class="theme-toggle" type="button" aria-label="Switch theme" aria-pressed="false">Retro</button>
       <button id="install-app" class="install-app" type="button" aria-label="Install COOLmagRaTv" title="Install"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></svg></button><button id="settings-open" class="settings-open" type="button" aria-label="Open settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.5.5 0 0 0 .11-.63l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.6 7.6 0 0 0-1.62-.87l-.36-2.55a.5.5 0 0 0-.49-.42h-3.84a.5.5 0 0 0-.49.42L9.18 5.4c-.59.2-1.13.5-1.62.87l-2.39-.96a.5.5 0 0 0-.61.22L2.64 8.85a.5.5 0 0 0 .11.63l2.03 1.58c-.05.3-.08.62-.08.94s.03.64.08.94l-2.03 1.58a.5.5 0 0 0-.11.63l1.92 3.32a.5.5 0 0 0 .61.22l2.39-.96c.49.37 1.03.67 1.62.87l.36 2.55a.5.5 0 0 0 .49.42h3.84a.5.5 0 0 0 .49-.42l.36-2.55c.59-.2 1.13-.5 1.62-.87l2.39.96a.5.5 0 0 0 .61-.22l1.92-3.32a.5.5 0 0 0-.11-.63l-2.03-1.58ZM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z"/></svg></button><span id="mode-label" class="mode-label">◉ RADIO MODE</span>
     </header>
 
@@ -81,7 +88,7 @@
           <source media="(min-width: 901px)" srcset="assets/station-logos/badge.png" width="1946" height="576">
           <img src="assets/station-logos/small_badge.png" width="418" height="125" alt="COOLmag retroRadioTV" decoding="async">
         </picture>
-      <div class="monitor-transport radio-lip-transport"><button class="transport-button" id="radio-prev" title="Previous station" aria-label="Previous station" aria-hidden="true" tabindex="-1">⏮</button><button class="transport-button main-play" id="radio-play" title="Play" aria-label="Play">▶</button><button class="transport-button" id="radio-next" title="Next station" aria-label="Next station" aria-hidden="true" tabindex="-1">⏭</button><button type="button" class="mini-star cabinet-favorite" id="radio-star" aria-label="Add station to presets">☆</button><button type="button" class="cabinet-sleep" data-sleep-open aria-label="Set sleep timer"><span>Zz</span></button></div><details class="module-options"><summary aria-label="Radio station options">OPTIONS</summary><div class="screen-heading"><div class="radio-heading-copy"><span class="eyebrow">RADIO</span><span class="education-note" style="color:#ff3333">ON TEST DRIVE</span></div><div class="radio-heading-tools"><label class="country-picker"><span>COUNTRY</span><select id="radio-country"><option value="all">All countries</option></select></label></div></div><div class="fine-volume"><div class="radio-volume-row" aria-label="Radio volume control"><button type="button" class="radio-volume-icon" data-radio-volume-action="mute" aria-label="Mute radio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4zM15 9a4 4 0 0 1 0 6m3-9a8 8 0 0 1 0 12"/></svg></button><label class="radio-volume-track" id="radio-volume-track" for="radio-volume"><span>VOL</span><input id="radio-volume" type="range" min="0" max="100" value="20" aria-label="Radio volume"><b id="volume-number">20</b></label><button type="button" class="radio-volume-icon" data-radio-volume-action="up" aria-label="Volume up"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4zM15 12h6m-3-3v6"/></svg></button></div><p id="tone-status" class="tone-status" role="status" aria-live="polite"></p></div></details></article>
+      <div class="monitor-transport radio-lip-transport"><button type="button" class="transport-button" id="radio-prev" title="Previous station" aria-label="Previous station">⏮</button><button class="transport-button main-play" id="radio-play" title="Play" aria-label="Play">▶</button><button type="button" class="transport-button" id="radio-next" title="Next station" aria-label="Next station">⏭</button><button type="button" class="mini-star cabinet-favorite" id="radio-star" aria-label="Add station to presets">☆</button><button type="button" class="cabinet-sleep" data-sleep-open aria-label="Set sleep timer"><span>Zz</span></button></div><details class="module-options"><summary aria-label="Radio station options">OPTIONS</summary><div class="screen-heading"><div class="radio-heading-copy"><span class="eyebrow">RADIO</span><span class="education-note" style="color:#ff3333">ON TEST DRIVE</span></div><div class="radio-heading-tools"><label class="country-picker"><span>COUNTRY</span><select id="radio-country"><option value="all">All countries</option></select></label></div></div><div class="fine-volume"><div class="radio-volume-row" aria-label="Radio volume control"><button type="button" class="radio-volume-icon" data-radio-volume-action="mute" aria-label="Mute radio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4zM15 9a4 4 0 0 1 0 6m3-9a8 8 0 0 1 0 12"/></svg></button><label class="radio-volume-track" id="radio-volume-track" for="radio-volume"><span>VOL</span><input id="radio-volume" type="range" min="0" max="100" value="20" aria-label="Radio volume"><b id="volume-number">20</b></label><button type="button" class="radio-volume-icon" data-radio-volume-action="up" aria-label="Volume up"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4zM15 12h6m-3-3v6"/></svg></button></div><p id="tone-status" class="tone-status" role="status" aria-live="polite"></p></div></details></article>
 
       
       
@@ -205,7 +212,7 @@
 
     <section class="screen" id="presets-screen" aria-label="Presets and favourites">
       <div class="screen-heading"><div><span class="eyebrow">YOUR COLLECTION</span><h1 class="screen-title">Presets &amp; Favorites</h1></div><div class="preset-priority-control" id="preset-priority-control" hidden><small id="preset-selection-label">SELECT A TV CHANNEL</small></div></div>
-      <div class="segmented preset-tabs"><button class="selected" data-preset-mode="radio">♫ RADIO <b id="preset-radio-count">0</b></button><button data-preset-mode="tv">▣ TV <b id="preset-tv-count">0</b></button><button data-preset-mode="recent">◷ RECENT</button></div>
+      <div class="segmented preset-tabs"><button class="selected" data-preset-mode="radio">♫ RADIO <b id="preset-radio-count">0/50</b></button><button data-preset-mode="tv">▣ TV <b id="preset-tv-count">0/50</b></button><button data-preset-mode="recent">RECENT <b id="preset-recent-count">0/30</b></button></div>
       <div class="preset-grid" id="preset-grid"></div>
       <p class="footnote" id="preset-footnote">Tap a preset to tune in · Use ★ to save or remove <button type="button" id="clear-recent" hidden>Clear recent history</button></p>
     </section>
@@ -233,7 +240,7 @@
       <button class="nav-item" data-screen="explore-screen"><span>⌕</span>EXPLORE</button>
     </nav>
   </main>
-  <dialog class="settings-dialog" id="settings-dialog"><form method="dialog"><button class="dialog-close" aria-label="Close settings">×</button><span class="eyebrow">PERSONALISE YOUR PLAYER</span><h2>Settings</h2><div class="setting-row"><span><b>LEGACY THEME</b><small>Allow 10 taps on the Radio page to switch to the GitHub v2 look.</small></span><label class="setting-switch"><input id="legacy-theme-enabled" type="checkbox" role="switch" aria-label="Legacy theme on or off"><span class="switch-track" aria-hidden="true"></span></label></div><div class="setting-row"><span><b>THEME</b><small>Allow switching between Retro, Modern, and Ultra.</small></span><label class="setting-switch"><input id="theme-switch-enabled" type="checkbox" role="switch" aria-label="Theme switching on or off"><span class="switch-track" aria-hidden="true"></span></label></div><label class="setting-row"><span><b>App theme</b><small>Retro: warm glow · Modern: white glow · Ultra: color glow</small></span><select id="theme-choice"><option value="retro">RETRO</option><option value="modern">MODERN</option><option value="ultra">ULTRA</option></select></label><label class="setting-row"><span><b>Radio visualizer</b><small>Audio-reactive patterns across the bottom</small></span><select id="visualizer-choice"><option value="wave">Colour waves</option><option value="halo">Particle halo</option><option value="mesh" selected>Flowing mesh</option><option value="mix">Mix — random cycle</option><option value="off">Off</option></select></label><div class="setting-row"><span><b>Curated presets</b><small>Export your saved Radio and TV lists in their current order</small></span><button type="button" id="export-curated-presets">Export presets</button></div><div class="setting-row"><span><b>Unavailable channels</b><small>Hide locally; restore whenever you want.</small></span><button type="button" id="hide-radio-channel">Hide current radio</button><button type="button" id="hide-tv-channel">Hide current TV</button><button type="button" id="restore-hidden-channels">Restore hidden</button></div><div class="setting-row"><span><b>Remote channel buttons</b><small>Allow Bluetooth or system Next/Previous commands to change stations. Leave off if channels switch by themselves. On-screen buttons always work.</small></span><label class="setting-switch"><input id="remote-track-enabled" type="checkbox" role="switch" aria-label="Remote channel buttons"><span class="switch-track" aria-hidden="true"></span></label></div><label class="setting-row"><span><b>Mechanical sounds</b><small>Detent clicks, switch clacks and tuning static</small></span><input type="checkbox" id="hardware-sound-enabled" checked></label><p class="settings-note">Visual edition 4.1.25 · Playback build 3.0.163 · waits 10 seconds before skipping an unavailable stream.</p><p class="settings-note">Your presets and choices remain saved in this browser.</p></form></dialog>
+  <dialog class="settings-dialog" id="settings-dialog"><form method="dialog"><button class="dialog-close" aria-label="Close settings">×</button><span class="eyebrow">PERSONALISE YOUR PLAYER</span><h2>Settings</h2><label class="setting-row"><span><b>Radio visualizer</b><small>Audio-reactive patterns across the bottom</small></span><select id="visualizer-choice"><option value="wave">Colour waves</option><option value="halo">Particle halo</option><option value="mesh" selected>Flowing mesh</option><option value="mix">Mix — random cycle</option><option value="off">Off</option></select></label><div class="setting-row"><span><b>Curated presets</b><small>Export your saved Radio and TV lists in their current order</small></span><button type="button" id="export-curated-presets">Export presets</button></div><div class="setting-row"><span><b>Unavailable channels</b><small>Hide locally; restore whenever you want.</small></span><button type="button" id="hide-radio-channel">Hide current radio</button><button type="button" id="hide-tv-channel">Hide current TV</button><button type="button" id="restore-hidden-channels">Restore hidden</button></div><div class="setting-row"><span><b>Remote channel buttons & mode switch</b><small>Press Play/Pause twice while the app is visible to switch Radio and TV. Next/Previous and Fast Forward/Rewind step through stations. Turn off this setting if your remote sends unwanted station changes.</small></span><label class="setting-switch"><input id="remote-track-enabled" type="checkbox" role="switch" aria-label="Remote channel buttons and double-press mode switch"><span class="switch-track" aria-hidden="true"></span></label></div><div class="setting-row"><span><b>Bluetooth remote test</b><small>Start a station first, then press a button on your remote. This shows the last command received from your browser.</small><small id="remote-test-result" role="status">Ready to test.</small></span><button type="button" id="remote-test-start">Start test</button></div><label class="setting-row"><span><b>Mechanical sounds</b><small>Detent clicks, switch clacks and tuning static</small></span><input type="checkbox" id="hardware-sound-enabled" checked></label><p class="settings-note">Visual edition 4.1.25 · Playback build 3.0.163 · waits 10 seconds before skipping an unavailable stream.</p><p class="settings-note">Your presets and choices remain saved in this browser.</p></form></dialog>
   <dialog class="settings-dialog cabinet-sleep-dialog" id="cabinet-sleep-dialog" aria-labelledby="cabinet-sleep-title">
     <form method="dialog">
       <button class="dialog-close" value="cancel" aria-label="Close sleep timer">&#215;</button>
@@ -253,10 +260,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   const radioVolume=$('radio-volume'),tvVolume=$('v4-tv-volume');
   // Startup volume belongs to app.js; UI refreshes never reset it.
   if(window.retroV4VisualizerDefaultMesh){$('visualizer-choice').value='mesh';$('visualizer-choice').dispatchEvent(new Event('change',{bubbles:true}));}
-  const skinLink=document.querySelector('link[rel="stylesheet"][href^="styles.css"]');
-  const refreshSkin=()=>{if(skinLink&&new URL(skinLink.href).pathname.endsWith('/styles.css')&&new URL(skinLink.href).searchParams.get('v')!=='4.1.6')skinLink.href='styles.css?v=4.1.6';};
-  if(skinLink)new MutationObserver(refreshSkin).observe(skinLink,{attributes:true,attributeFilter:['href']});
-  refreshSkin();
   const text=(node,value)=>{if(node&&node.textContent!==String(value))node.textContent=String(value);};
   const tvVisible=()=>$('tv-screen').classList.contains('active');
   const radioLiveIndicator=document.querySelector('.radio-live-indicator');
@@ -276,10 +279,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   function showPlaybackIssue(){
     const status=$('radio-status').textContent||'';
     if(!audio.paused&&!audio.error){playbackNotice.hidden=true;return;}
-    const blocked=/TAP PLAY|PRESS PLAY|Tap Play/i.test(status);
-    const failed=/COULD NOT|UNAVAILABLE|HTTPS REQUIRED|PLAYER UNAVAILABLE/i.test(status)||Boolean(audio.error);
-    playbackNotice.hidden=!(blocked||failed);
-    playbackNotice.textContent=failed?'Stream could not start — tap to retry':'Tap to start radio';
+    const blocked=$('radio-art').dataset.playbackBlocked==='true';
+    playbackNotice.hidden=!blocked;
+    playbackNotice.textContent='Browser requires a tap to enable audio';
     playbackNotice.setAttribute('aria-label',playbackNotice.textContent);
     if(audio.error)playbackNotice.title='Media error '+audio.error.code+': '+(audio.error.message||'Stream unavailable');
     else playbackNotice.title=status;
@@ -304,29 +306,51 @@ document.addEventListener('DOMContentLoaded',()=>{
   let lastArtworkTime=Number(audio.currentTime)||0;
   let tvSignalPlaying=!video.paused&&video.readyState>=3,lastTVSignalTime=Number(video.currentTime)||0;
   const signalIsPlaying=(media,playing)=>Boolean(playing&&!media.paused&&!media.ended&&!document.hidden);
-  // Artwork uses catalogue identity only; it never changes media or station selection.
-  function stationArtworkType(station){
-    const name=String(station.name||'').toLowerCase();
-    const info=[station.genre,station.group,station.category,station.tags].flat().filter(Boolean).join(' ').toLowerCase();
-    if(/\bcool\b|coolmag|coolradio/.test(name))return 'cassette';
-    if(/\bfm\b|\b(?:air|akashvani|akashwani|all india radio|bbc|live|public radio)\b/.test(name+' '+info)||/\d[.,]\d/.test(name)||/^(?:cityfm|sun-tamil-radio|big-fm)/.test(name))return 'tower';
-    if(/music|hits|songs|retro|bolly|filmy|mirchi|hungama|gold|90s|pop|rock/.test(name+' '+info))return 'lp';
-    return 'tower';
-  }
+  const artworkKinds={RADIO_TOWER:'tower',LP_RECORD:'lp',CASSETTE:'cassette'};
   let cassetteStartupFlipShown=false;
-  function paintRadioArtwork(art,name,logo,station){
-    const kind=stationArtworkType(station),key=JSON.stringify([kind,name,logo]);
+  // Decorative label studies, with original artwork and period-style lettering.
+  const vinylEditions=[
+    {id:'hmv',name:'HMV',line:'HIS MASTER’S VOICE',mark:'<path fill="currentColor" d="M4 15c5 0 9-3 14-8v15c-5-3-9-4-14-4Zm3 4h3v6h9v4H2v-4h5Zm20-8 1-4 4 2 3 2 1 4-2 4c3 2 4 5 4 8h2v2H23v-3l4-2 1-5-3-1-3-1v-2l4-2Z"/><path d="M33 10l-1 6 3-2m-8 0h1M18 8v13" fill="none" stroke="#591f25" stroke-width=".8"/>'},
+    {id:'mercury',name:'Mercury',line:'HIGH FIDELITY',mark:'<path fill="currentColor" d="M27 6c4 1 6 4 6 8l4 4-4 1v4h-4l-2 6H13l4-8c-3-3-4-8-1-13 2-3 6-4 11-2Z"/><path d="m19 12-5-6-9-3 4 6-4-1 5 5-5-1 6 6 7 1" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M19 18c1 2 2 4 5 4m5-7h2" fill="none" stroke="#232323"/>'},
+    {id:'columbia',name:'COLUMBIA',line:'MAGIC NOTES',mark:'<path d="M5 20h30m-30-4h30m-30 8h30M17 22V8l13-3v14m-13-6 13-3" fill="none" stroke="currentColor" stroke-width="1.6"/><ellipse cx="13.5" cy="23" rx="4" ry="3" fill="currentColor"/><ellipse cx="26.5" cy="20" rx="4" ry="3" fill="currentColor"/>'},
+    {id:'decca',name:'DECCA',line:'LONG PLAY',mark:'<path d="M5 26h30M10 23a10 10 0 1 1 20 0M20 2v5m-9-3 2 4M4 10l5 3m-8 7 6 1M29 4l-2 4m9 2-5 3m8 7-6 1" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>'},
+    {id:'capitol',name:'Capitol',line:'HIGH FIDELITY',mark:'<path d="M5 27h30M7 23h26m-23-2v-4h20v4m-17-5c0-6 3-9 7-9s7 3 7 9M20 7V3m-4 16v3m8-3v3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>'},
+    {id:'vocalion',name:'Vocalion',line:'AEOLIAN SERIES',mark:'<path d="M10 5c0 10 5 12 10 15 5-3 10-5 10-15M13 8c3 2 5 2 7 0 2 2 4 2 7 0m-11 2v7m4-7v10m4-10v7m-4 3v6m-8 1h16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="m5 15 2 2-2 2-2-2Zm30 0 2 2-2 2-2-2Z" fill="currentColor"/>'}
+  ];
+  let vinylDeck=[],vinylEdition=null,lastVinylStation=null;
+  function vinylLabelFor(stationName){
+    if(lastVinylStation===stationName&&vinylEdition)return vinylEdition;
+    if(!vinylDeck.length){
+      vinylDeck=[...vinylEditions];
+      for(let index=vinylDeck.length-1;index>0;index--){
+        const pick=Math.floor(Math.random()*(index+1));
+        [vinylDeck[index],vinylDeck[pick]]=[vinylDeck[pick],vinylDeck[index]];
+      }
+      if(vinylDeck.at(-1)===vinylEdition)vinylDeck.unshift(vinylDeck.pop());
+    }
+    lastVinylStation=stationName;
+    vinylEdition=vinylDeck.pop();
+    return vinylEdition;
+  }
+  function paintRadioArtwork(art,name,logo,category){
+    const kind=artworkKinds[category],key=JSON.stringify([kind,name,logo]);
+    if(kind!=='lp')lastVinylStation=null;
     let artwork=art.querySelector('.receiver-station-artwork');
     if(!artwork){artwork=document.createElement('div');artwork.className='receiver-station-artwork';artwork.setAttribute('aria-hidden','true');art.prepend(artwork);}
     if(artwork.dataset.artworkKey!==key){
       clearTimeout(artwork._needleTimer);delete artwork.dataset.engaged;
-      artwork.dataset.artworkKey=key;artwork.dataset.kind=kind;
+      artwork.dataset.artworkKey=key;artwork.dataset.kind=kind;artwork.dataset.stationCategory=category;
       const layouts={
-        lp:'<div class="vinyl-player"><div class="vinyl-disc"><span class="vinyl-grooves"></span><div class="vinyl-label"><span class="artwork-logo"></span><b class="artwork-station-name"></b><small>STEREO · 33⅓ RPM</small><i class="vinyl-spindle"></i></div></div><span class="vinyl-arm-stand" aria-hidden="true"></span><span class="vinyl-arm-rest" aria-hidden="true"></span><span class="vinyl-arm" aria-hidden="true"><span class="vinyl-arm-tracking"><i class="vinyl-cartridge"></i></span></span></div>',
+        lp:'<div class="vinyl-player"><div class="vinyl-disc"><span class="vinyl-grooves"></span><div class="vinyl-label"><span class="vinyl-imprint"></span><span class="artwork-logo"></span><span class="vinyl-label-side">SIDE<br>A</span><b class="artwork-station-name"></b><small>33⅓ RPM</small><i class="vinyl-spindle"></i></div></div><span class="vinyl-arm-stand" aria-hidden="true"></span><span class="vinyl-arm-rest" aria-hidden="true"></span><span class="vinyl-arm" aria-hidden="true"><span class="vinyl-arm-tracking"><i class="vinyl-cartridge"></i></span></span></div>',
         cassette:'<div class="cassette-player standard-cassette"><div class="radio-cassette"><span class="cassette-shell"></span><i class="cassette-screw top-left"></i><i class="cassette-screw top-right"></i><i class="cassette-screw bottom-left"></i><i class="cassette-screw bottom-right"></i><i class="cassette-screw bottom-center"></i><div class="cassette-label"><span class="cassette-side">A</span><span class="artwork-logo"></span><b class="artwork-station-name"></b></div><span class="standard-cassette-markings"><small>STEREO &bull; C-60</small><b>60</b></span><span class="standard-cassette-spec">TYPE I (NORMAL) POSITION</span><div class="cassette-window"><span class="cassette-reel reel-left"><i></i></span><span class="cassette-reel reel-right"><i></i></span></div><div class="cassette-foot"><i></i><i></i><i></i><i></i></div><span class="cassette-head-opening"><i class="cassette-bottom-tape"><svg class="cassette-contact-tape" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path class="tape-contact-base" d="M0 42H18Q24 42 29 42Q50 42 71 42Q76 42 82 42H100"/><path class="tape-contact-edge" d="M0 42H18Q24 42 29 42Q50 42 71 42Q76 42 82 42H100"/><path class="tape-contact-travel" d="M0 42H18Q24 42 29 42Q50 42 71 42Q76 42 82 42H100"/></svg></i></span></div><div class="cassette-spindle-drive spindle-drive-left" aria-hidden="true"><i></i></div><div class="cassette-spindle-drive spindle-drive-right" aria-hidden="true"><i></i></div><div class="cassette-head-assembly"><i class="cassette-guide guide-left"></i><i class="cassette-guide guide-right"></i><span class="cassette-playback-head"><i class="cassette-head-gap"></i></span><span class="cassette-head-carriage"></span></div></div>',
         tower:'<div class="broadcast-transmitter"><div class="tower-waves"><i></i><i></i><i></i></div><svg class="transmitter-tower" viewBox="0 0 200 220" fill="none"><path d="M100 45 57 204h86L100 45ZM80 117h40M70 155h60M61 190h78M83 107l47 48M117 107l-47 48M70 155l69 35M130 155l-69 35M100 45V20"/><circle class="tower-tip" cx="100" cy="23" r="6"/><path class="tower-base" d="M42 207h116"/></svg><div class="tower-station-label"><span class="artwork-logo"></span><div><b class="artwork-station-name"></b><small>LIVE BROADCAST</small></div></div></div>'
       };
       artwork.innerHTML=layouts[kind]; // Constant markup; station data is added as text.
+      if(kind==='lp'){
+        const edition=vinylLabelFor(name),label=artwork.querySelector('.vinyl-label');
+        label.dataset.edition=edition.id;
+        label.querySelector('.vinyl-imprint').innerHTML=`<svg viewBox="0 0 100 36" aria-hidden="true"><svg x="1" y="5" width="27" height="25" viewBox="0 0 40 32">${edition.mark}</svg><text class="vinyl-brand-name" x="32" y="20" textLength="${edition.id==='hmv'?51:64}" lengthAdjust="spacingAndGlyphs">${edition.name}</text><text class="vinyl-brand-line" x="32" y="30" textLength="60" lengthAdjust="spacingAndGlyphs">${edition.line}</text></svg>`;
+      }
       if(kind==='cassette'){
         artwork.dataset.tapeSide='A';
         const supply=artwork.querySelector('.reel-left');
@@ -466,18 +490,20 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(selected>=0&&selected!==lastRadioPreset){lastRadioPreset=selected;paintBank('radio',true);}
     const art=$('radio-art'),source=cards[selected]?.querySelector('img');
     const radioName=art.querySelector('.radio-center-title')?.textContent||'RADIO RECEIVER';
-    const station=savedStationLookup('radio').get(radioName.toLocaleLowerCase())||{name:radioName};
-    paintRadioArtwork(art,radioName,art.dataset.stationLogo??source?.getAttribute('src')??'',station);
-    text($('v4-radio-station'),radioName);text($('v4-radio-number'),cards[selected]?.dataset.memoryNumber||number(selected));
+    const category=art.dataset.stationCategory||'CASSETTE';
+    paintRadioArtwork(art,radioName,art.dataset.stationLogo??source?.getAttribute('src')??'',category);
+    const radioReadout=$('radio-screen').dataset.recoveryStatus||radioName;
+    text($('v4-radio-station'),radioReadout);text($('v4-radio-number'),cards[selected]?.dataset.memoryNumber||number(selected));
     text(radioMonitorTitle.querySelector('.radio-monitor-channel'),'CH '+$('v4-radio-number').textContent);
-    text(radioMonitorTitle.querySelector('b'),radioName);
+    text(radioMonitorTitle.querySelector('b'),radioReadout);
     text(radioMonitorTitle.querySelector('.radio-monitor-details'),art.querySelector('#radio-subtitle')?.textContent||'');
     const tvSelected=$('remote-presets').querySelector('.active');
     const tvPosition=Number(tvSelected?.dataset.remotePreset??-1);
     if(tvPosition>=0&&tvPosition!==lastTVPreset){lastTVPreset=tvPosition;paintBank('tv',true);}
     const channel=tvSelected?.dataset.memoryNumber||String($('tv-channel-number').textContent).padStart(2,'0');
     text($('v4-tv-number'),channel);text($('v4-osd-channel'),'CH '+channel);
-    text($('v4-tv-station'),$('tv-title').textContent);
+    const tvReadoutText=$('tv-screen').dataset.recoveryStatus||$('tv-title').textContent;
+    text($('v4-tv-station'),tvReadoutText);
     text($('v4-radio-air'),audio.paused?'STANDBY':'ON AIR');text($('v4-tv-air'),video.paused?'STANDBY':'ON AIR');
     const radioLive=signalIsPlaying(audio,radioArtworkState==='playing');
     document.querySelector('.receiver-readout').classList.toggle('vfd-signal-running',radioLive);
@@ -528,7 +554,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   const utilityDock=document.createElement('div');utilityDock.className='options-utilities';
   utilityDock.setAttribute('aria-label','App settings and installation');
   function placeCompactUtilities(){
-    const buttons=[$('install-app'),$('settings-open')];
+    const buttons=[$('theme-choice'),$('install-app'),$('settings-open')];
     if(buttons.some(button=>button.closest('.listener-dialog')))return;
     if(matchMedia('(max-width:900px)').matches){
       const drawer=$(tvVisible()?'tv-screen':'radio-screen').querySelector('.module-options');
@@ -568,17 +594,11 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(tvVisible())document.querySelector('[data-remote="mute"]').click();
     else document.querySelector('[data-radio-volume-action="mute"]').click();
   }));
-  let genreCataloguePromise=null;
   function loadGenreCatalogue(){
-    if(window.COOLMAG_GENRE_CATALOGUE)return Promise.resolve(window.COOLMAG_GENRE_CATALOGUE);
-    if(genreCataloguePromise)return genreCataloguePromise;
-    genreCataloguePromise=new Promise((resolve,reject)=>{
-      const script=document.createElement('script');script.src='genre-presets.js?v=4.0.110';script.async=true;
-      const timeout=setTimeout(()=>{script.remove();genreCataloguePromise=null;reject(new Error('Catalogue loading timed out'));},12000);
-      script.onload=()=>{clearTimeout(timeout);if(window.COOLMAG_GENRE_CATALOGUE)resolve(window.COOLMAG_GENRE_CATALOGUE);else{genreCataloguePromise=null;reject(new Error('Catalogue unavailable'));}};
-      script.onerror=()=>{clearTimeout(timeout);script.remove();genreCataloguePromise=null;reject(new Error('Catalogue unavailable'));};
-      document.head.append(script);
-    });return genreCataloguePromise;
+    return Promise.resolve({
+      radio:window.retroPresetRows('radio'),
+      tv:window.retroPresetRows('tv')
+    });
   }
   const filterLoadGeneration={radio:0,tv:0};
   document.querySelectorAll('[data-console-filter]').forEach(button=>button.addEventListener('click',async()=>{
@@ -618,6 +638,17 @@ document.addEventListener('DOMContentLoaded',()=>{
   const feedback=window.RetroHardware;
   const flywheel=feedback?.createFlywheel();
   let tunerDrag=null,skipStripClickUntil=0;
+  let tunerNavigationDirection=1;
+  let paintFrame=0,geometry=null,coasting=false;
+  const cardStates=new WeakMap();
+  function tunerGeometry(){
+    if(geometry)return geometry;
+    const first=tunerTrack.firstElementChild;
+    if(!first||!tunerWindow.clientWidth)return null;
+    // Layout widths do not include card hover/selection transforms.
+    const width=first.offsetWidth,gap=parseFloat(getComputedStyle(tunerTrack).columnGap)||0;
+    return geometry={width,gap,viewport:tunerWindow.clientWidth};
+  }
   if(kind==='tv'){
     tunerDial.classList.add('tv-channel-selector');
     tunerDial.title='Stepped TV channel selector: drag one detent at a time; release to select';
@@ -631,9 +662,16 @@ document.addEventListener('DOMContentLoaded',()=>{
   tunerDial.title='Click left/right for previous/next; scroll to tune; drag and release to select';
   const clampTuner=(value,count)=>Math.max(0,Math.min(Math.max(0,count-1),Number(value)||0));
   function positionStationTuner(){
+    if(kind!=='radio'){renderStationTuner();return;}
+    if(!paintFrame)paintFrame=requestAnimationFrame(()=>{paintFrame=0;renderStationTuner();});
+  }
+  function renderStationTuner(){
+    // Read geometry before updating classes; pointer events only schedule one paint.
+    const size=tunerGeometry();
     const entry=tunerEntries[tunerIndex];
+    const preview=entry&&!entry.button.classList.contains('active');
     tunerInput.disabled=!tunerEntries.length;tunerInput.max=String(Math.max(0,tunerEntries.length-1));tunerInput.value=String(tunerIndex);
-    tunerInput.setAttribute('aria-valuetext',entry?entry.name:'No matching stations');
+    tunerInput.setAttribute('aria-valuetext',entry?(preview?'Preview: ':'')+entry.name:'No matching stations');
     tunerDial.style.setProperty('--station-tuner-angle',((kind==='tv'?tunerIndex:tunerPosition)*30)+'deg');
     if(kind==='tv'){
       const bank=Math.floor(tunerIndex/12)*12;
@@ -642,24 +680,36 @@ document.addEventListener('DOMContentLoaded',()=>{
         mark.classList.toggle('selector-current',channel===tunerIndex);
       });
     }
-    text($(prefix+'station-tuner-label'),entry?'CH '+String(tunerIndex+1).padStart(2,'0')+' / '+tunerEntries.length+' · '+entry.name:'No matching stations — clear a filter');
+    text($(prefix+'station-tuner-label'),entry?(preview?'PREVIEW':'CH '+String(tunerIndex+1).padStart(2,'0')+' / '+tunerEntries.length)+' · '+entry.name:'No matching stations - clear a filter');
     tunerTrack.querySelectorAll('[data-tuner-index]').forEach((card,index)=>{
-      card.classList.toggle('tuner-centred',index===tunerIndex);
-      card.classList.toggle('tuner-on-air',Boolean(tunerEntries[index]?.button.classList.contains('active')));
-      card.setAttribute('aria-pressed',String(index===tunerIndex));
+      const centred=index===tunerIndex,isPreview=centred&&Boolean(preview);
+      const station=tunerEntries[index];
+      const state=[centred,isPreview,Boolean(station?.button.classList.contains('active')),station?.name].join('|');
+      if(kind==='radio'&&cardStates.get(card)===state)return;
+      cardStates.set(card,state);
+      card.classList.toggle('tuner-centred',centred);
+      card.classList.toggle('tuner-on-air',Boolean(station?.button.classList.contains('active')));
+      card.classList.toggle('tuner-preview',isPreview);
+      text(card.querySelector('.tuning-card-number'),isPreview?'PREVIEW':String(index+1).padStart(2,'0'));
+      card.setAttribute('aria-pressed',String(centred));
+      if(station)card.setAttribute('aria-label',(isPreview?'Preview: '+station.name+'. Tune in':'Tune '+station.name));
     });
     screen.querySelectorAll('[data-tuner-step]').forEach(button=>button.disabled=!entry||(Number(button.dataset.tunerStep)<0?tunerIndex===0:tunerIndex===tunerEntries.length-1));
-    const first=tunerTrack.querySelector('[data-tuner-index]');
-    if(!first||tunerWindow.clientWidth<=0)return;
-    const width=first.getBoundingClientRect().width,gap=parseFloat(getComputedStyle(tunerTrack).columnGap)||0;
-    tunerTrack.style.transform='translateX('+(tunerWindow.clientWidth/2-(tunerPosition+.5)*width-tunerPosition*gap)+'px)';
+    if(!size)return;
+    const {width,gap,viewport}=size;
+    tunerTrack.style.transform='translateX('+(viewport/2-(tunerPosition+.5)*width-tunerPosition*gap)+'px)';
   }
   function previewStationTuner(value){
-    const previous=tunerIndex;
-    tunerPosition=clampTuner(value,tunerEntries.length);tunerIndex=Math.round(tunerPosition);positionStationTuner();
+    const previous=tunerIndex,previousPosition=tunerPosition;
+    tunerPosition=clampTuner(value,tunerEntries.length);
+    // Retain the gesture direction through release, rounding and stream recovery.
+    // Without this, a failed station always skips right and traps leftward tuning.
+    if(kind==='radio'&&tunerPosition!==previousPosition)tunerNavigationDirection=tunerPosition<previousPosition?-1:1;
+    tunerIndex=Math.round(tunerPosition);positionStationTuner();
     if(previous!==tunerIndex)feedback?.SoundFX.detent();
   }
-  function commitStationTuner(){
+  function commitStationTuner(direction=0){
+    if(kind==='radio')direction=direction<0?-1:direction>0?1:tunerNavigationDirection;
     stopCoasting();
     clearTimeout(tunerCommitTimer);tunerCommitTimer=0;
     if(!screen.classList.contains('active'))return;
@@ -668,16 +718,24 @@ document.addEventListener('DOMContentLoaded',()=>{
     // Only explicit knob/key/card gestures reach here. Filter/resize/render never play.
     if(button?.isConnected&&(!button.classList.contains('active')||media.paused)){
       if(!button.classList.contains('active'))feedback?.SoundFX.staticBurst();
-      button.click();
+      const outsideBank=button.classList.contains('memory-outside-bank');
+      if(outsideBank)button.classList.remove('memory-outside-bank');
+      if(direction)button.dataset.tuneDirection=String(direction);
+      try{button.click();}
+      finally{
+        delete button.dataset.tuneDirection;
+        if(outsideBank)paintBank(kind,true);
+      }
+      return true;
     }
   }
   function scheduleStationTune(){clearTimeout(tunerCommitTimer);tunerCommitTimer=setTimeout(commitStationTuner,200);}
   function paintStationTuner(entries,followActive=false){
-    const signature=JSON.stringify(entries.map(entry=>[entry.index,entry.name]));
+    const signature=JSON.stringify(entries.map(entry=>[entry.index,entry.name,entry.button.dataset.stationCategory]));
     const changed=signature!==tunerSignature;
     tunerEntries=entries;
     if(changed){
-      cancelStationTuner();tunerSignature=signature;
+      cancelStationTuner();geometry=null;tunerSignature=signature;
       tunerTrack.replaceChildren();
       entries.forEach((entry,index)=>{
         const card=document.createElement('button');card.type='button';card.className='radio-tuning-card';card.dataset.tunerIndex=String(index);card.setAttribute('aria-label','Tune '+entry.name);
@@ -686,11 +744,17 @@ document.addEventListener('DOMContentLoaded',()=>{
         const src=entry.button.querySelector('img')?.getAttribute('src')||entry.station.logo||entry.station.favicon||'';
         if(src){const image=document.createElement('img');image.src=src;image.alt='';image.loading='lazy';image.decoding='async';logo.append(image);}
         else logo.textContent=entry.name.split(/\s+/).filter(Boolean).slice(0,2).map(word=>word[0]).join('');
-        const name=document.createElement('b');name.textContent=entry.name;card.append(number,logo,name);
+        const name=document.createElement('b');
+        if(kind==='radio'){
+          const category=entry.button.dataset.stationCategory||window.getStationCategory(entry.station);
+          card.dataset.stationCategory=category;
+          name.innerHTML=window.stationCategoryIcon(category);
+        }
+        name.append(entry.name);card.append(number,logo,name);
         card.addEventListener('click',()=>{previewStationTuner(index);commitStationTuner();});tunerTrack.append(card);
       });
     }
-    if(changed||followActive){
+    if(changed||(followActive&&!(kind==='radio'&&(tunerDrag||coasting||tunerCommitTimer)))){
       const active=entries.findIndex(entry=>entry.button.classList.contains('active'));
       tunerIndex=active>=0?active:Math.round(clampTuner(changed?0:tunerIndex,entries.length));tunerPosition=tunerIndex;
     }
@@ -699,7 +763,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   tunerInput.addEventListener('input',()=>{if(!tunerDragging)stopCoasting();previewStationTuner(tunerInput.value);if(!tunerDragging)scheduleStationTune();});
   tunerInput.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();commitStationTuner();}});
   function stopCoasting(){
-    flywheel?.cancel();
+    flywheel?.cancel();coasting=false;
     if(!tunerDragging)tunerWindow.classList.remove('tuner-dragging');
   }
   function startDrag(event,surface){
@@ -723,7 +787,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   function finishStationTuner(event){
     if(!tunerDrag||tunerDrag.id!==event.pointerId)return;
     const {surface,x,y}=tunerDrag;
-    if(event.currentTarget!==surface)return;
+    if(event.currentTarget!==surface&&event.currentTarget!==window)return;
+    // A range input can lose its own implicit capture while the dial owns the drag.
+    if(event.type==='lostpointercapture'&&event.target!==surface)return;
     const cancelled=event.type!=='pointerup';
     const dragged=tunerDragging;
     const tap=surface===tunerDial&&!cancelled&&Math.hypot(event.clientX-x,event.clientY-y)<5;
@@ -737,8 +803,11 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(surface===tunerWindow)skipStripClickUntil=performance.now()+350;
     if(cancelled){stopCoasting();paintStationTuner(tunerEntries,true);}
     else if(tap||!flywheel)commitStationTuner();
-    else flywheel.release({position:tunerPosition,time:event.timeStamp,maximum:tunerEntries.length-1,
-      preview:previewStationTuner,settle:commitStationTuner});
+    else {
+      coasting=true;
+      flywheel.release({position:tunerPosition,time:event.timeStamp,maximum:tunerEntries.length-1,
+        preview:previewStationTuner,settle:commitStationTuner});
+    }
     event.stopPropagation();
   }
   for(const name of ['pointerup','pointercancel','lostpointercapture'])tunerDial.addEventListener(name,finishStationTuner);
@@ -754,8 +823,9 @@ document.addEventListener('DOMContentLoaded',()=>{
     const travel=tunerDrag.x-event.clientX;
     if(!tunerDragging){
       if(Math.abs(travel)<7||Math.abs(travel)<Math.abs(event.clientY-tunerDrag.y))return;
-      const card=tunerTrack.firstElementChild;
-      tunerDrag.pitch=card.getBoundingClientRect().width+(parseFloat(getComputedStyle(tunerTrack).columnGap)||0);
+      const size=tunerGeometry();
+      if(!size)return;
+      tunerDrag.pitch=size.width+size.gap;
       if(!tunerDrag.pitch)return;
       tunerDragging=true;
       tunerWindow.classList.add('tuner-dragging');
@@ -767,7 +837,9 @@ document.addEventListener('DOMContentLoaded',()=>{
     event.preventDefault();
   });
   for(const name of ['pointerup','pointercancel'])window.addEventListener(name,event=>{
-    if(tunerDrag?.surface===tunerWindow&&!tunerDragging&&tunerDrag.id===event.pointerId)tunerDrag=null;
+    if(!tunerDrag||tunerDrag.id!==event.pointerId)return;
+    if(kind==='radio')finishStationTuner(event);
+    else if(tunerDrag.surface===tunerWindow&&!tunerDragging)tunerDrag=null;
   });
   for(const name of ['pointerup','pointercancel','lostpointercapture'])tunerWindow.addEventListener(name,event=>{
     if(name==='lostpointercapture'&&event.target!==tunerWindow)return;
@@ -788,16 +860,31 @@ document.addEventListener('DOMContentLoaded',()=>{
     cancelStationTuner();
     paintStationTuner(tunerEntries,true);
   });
-  if(window.ResizeObserver)new ResizeObserver(positionStationTuner).observe(tunerWindow);
-  else window.addEventListener('resize',positionStationTuner);
+  const resizeTuner=()=>{geometry=null;positionStationTuner();};
+  if(window.ResizeObserver)new ResizeObserver(resizeTuner).observe(tunerWindow);
+  window.addEventListener('resize',resizeTuner);
+  window.addEventListener('blur',()=>{
+    if(kind!=='radio')return;
+    cancelStationTuner();tunerPosition=tunerIndex;positionStationTuner();
+  });
   function cancelStationTuner(){
     clearTimeout(tunerCommitTimer);tunerCommitTimer=0;
     const drag=tunerDrag;tunerDrag=null;tunerDragging=false;stopCoasting();
     if(drag?.surface.hasPointerCapture(drag.id))drag.surface.releasePointerCapture(drag.id);
   }
-  return {paint:paintStationTuner,cancel:cancelStationTuner};
+  function stepFromRemote(direction){
+    if(!tunerEntries.length)return false;
+    cancelStationTuner();
+    const playingIndex=tunerEntries.findIndex(entry=>entry.button.classList.contains('active'));
+    const startIndex=kind==='radio'?tunerIndex:(playingIndex>=0?playingIndex:tunerIndex);
+    previewStationTuner((startIndex+direction+tunerEntries.length)%tunerEntries.length);
+    return commitStationTuner(direction)===true;
+  }
+  return {paint:paintStationTuner,cancel:cancelStationTuner,stepFromRemote,order:()=>tunerEntries.map(entry=>entry.index)};
   }
   const stationTuners={radio:createStationTuner('radio'),tv:createStationTuner('tv')};
+  window.retroStepStationTuner=(kind,direction)=>stationTuners[kind].stepFromRemote(direction);
+  window.retroStationTunerOrder=kind=>stationTuners[kind].order();
   document.addEventListener('retro-sleep-expired',()=>{
     stationTuners.radio.cancel();stationTuners.tv.cancel();
   });

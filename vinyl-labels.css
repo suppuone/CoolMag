@@ -1,0 +1,146 @@
+.vinyl-label[data-edition] {
+  --label-rim: currentColor;
+  --label-station-x: 26%;
+  --label-side-x: 74%;
+  --label-station-size: 22%;
+  --label-type: Georgia, serif;
+  --label-rules: radial-gradient(circle, transparent 0 66%, currentColor 67% 68%, transparent 69%);
+  position: absolute;
+  inset: 25%;
+  display: block;
+  container: vinyl-label / inline-size;
+  padding: 0;
+  border: 1px solid var(--label-rim);
+  background: var(--label-paper);
+  color: var(--label-ink);
+  box-shadow: 0 0 0 2px #0a0a09, inset 0 0 0 1px #1118;
+}
+
+.vinyl-label[data-edition]::before {
+  position: absolute;
+  inset: 2%;
+  border-radius: 50%;
+  background: var(--label-rules);
+  opacity: .54;
+  pointer-events: none;
+  content: '';
+}
+
+.vinyl-label .vinyl-imprint {
+  position: absolute;
+  inset: 15% 19% auto;
+  height: 24%;
+}
+
+.vinyl-imprint > svg { display: block; width: 100%; height: 100%; }
+.vinyl-brand-name {
+  fill: currentColor;
+  font: 700 var(--imprint-size, 18px) var(--imprint-type, var(--label-type));
+  letter-spacing: var(--imprint-spacing, .025em);
+}
+.vinyl-brand-line {
+  fill: currentColor;
+  font: 600 7px var(--label-type);
+  letter-spacing: .07em;
+}
+
+.vinyl-label[data-edition] > .artwork-logo {
+  position: absolute;
+  left: var(--label-station-x);
+  top: 49%;
+  width: var(--label-station-size);
+  height: auto;
+  max-height: none;
+  transform: translate(-50%, -50%);
+  font: 700 clamp(6px, 8cqw, 13px)/1 var(--label-type);
+  box-shadow: 0 0 0 1px var(--label-ink), 0 1px 2px #0008;
+}
+
+.vinyl-label-side {
+  position: absolute;
+  left: var(--label-side-x);
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font: 700 clamp(5px, 5cqw, 8px)/1.25 var(--label-type);
+  letter-spacing: .15em;
+  text-align: center;
+}
+
+.vinyl-label[data-edition] > .artwork-station-name {
+  position: absolute;
+  inset: 66% 17% auto;
+  max-width: none;
+  color: inherit;
+  font: 700 clamp(7px, 9cqw, 15px)/1.02 var(--label-type);
+}
+
+.vinyl-label[data-edition] > small {
+  position: absolute;
+  inset: 88% 20% auto;
+  font: 700 clamp(5px, 5.5cqw, 8px)/1 var(--label-type);
+  letter-spacing: .1em;
+  text-align: center;
+}
+
+.vinyl-label[data-edition="hmv"] {
+  --label-paper: radial-gradient(ellipse at 45% 15%, #8d302e, #46151c 78%);
+  --label-ink: #fce2a0;
+  --label-station-size: 25%;
+  --imprint-type: 'Copperplate Gothic Bold', Georgia, serif;
+  --imprint-size: 21px;
+  --label-rules: repeating-radial-gradient(circle, transparent 0 63%, currentColor 64% 65%, transparent 66% 69%, currentColor 70% 71%, transparent 72% 100%);
+}
+.vinyl-label[data-edition="mercury"] {
+  --label-paper: linear-gradient(169deg, #202022 0 34%, #8a252a 34% 36%, #303033 36% 64%, #252526 64%);
+  --label-ink: #f6e9d9;
+  --label-station-x: 75%;
+  --label-side-x: 25%;
+  --label-station-size: 15%;
+  --label-type: 'Franklin Gothic Medium', Arial, sans-serif;
+  --imprint-type: 'Brush Script MT', 'Trebuchet MS', cursive;
+}
+.vinyl-label[data-edition="columbia"] {
+  --label-paper: radial-gradient(ellipse at top, #294878, #14223c);
+  --label-ink: #f4d491;
+  --label-station-size: 20%;
+  --label-type: 'Baskerville Old Face', 'Times New Roman', serif;
+  --imprint-size: 16px;
+  --label-rules: radial-gradient(circle, transparent 0 62%, currentColor 63% 64%, transparent 65% 67%, currentColor 68% 69%, transparent 70%);
+}
+.vinyl-label[data-edition="decca"] {
+  --label-paper: radial-gradient(ellipse at 50% 35%, #256b99, #082d57 75%);
+  --label-ink: #fff0b1;
+  --label-type: 'Century Gothic', 'Trebuchet MS', sans-serif;
+  --label-station-x: 75%;
+  --label-side-x: 25%;
+  --label-station-size: 27%;
+  --label-rules: repeating-conic-gradient(from 6deg at 50% 31%, #fff2 0deg 7deg, transparent 7deg 15deg);
+  --imprint-spacing: .09em;
+}
+.vinyl-label[data-edition="capitol"] {
+  --label-paper: radial-gradient(circle, #20211f 0 65%, transparent 66%), conic-gradient(#759848, #b99a43, #ad5143, #6e547b, #418a92, #759848);
+  --label-ink: #fff2d5;
+  --label-type: 'Trebuchet MS', Arial, sans-serif;
+  --label-station-size: 18%;
+  --imprint-type: 'Brush Script MT', Georgia, cursive;
+  --imprint-size: 20px;
+  --label-rules: none;
+}
+.vinyl-label[data-edition="vocalion"] {
+  --label-paper: radial-gradient(ellipse at 43% 15%, #eed6a0, #bc9561 89%);
+  --label-ink: #492629;
+  --label-station-x: 75%;
+  --label-side-x: 25%;
+  --label-station-size: 23%;
+  --label-type: 'Baskerville Old Face', Garamond, Georgia, serif;
+  --imprint-spacing: .07em;
+  --label-rules: radial-gradient(circle, transparent 0 57%, currentColor 58% 58.5%, transparent 60% 64%, currentColor 65% 66%, transparent 67%);
+}
+
+@container vinyl-label (max-width: 92px) {
+  .vinyl-brand-line { display: none; }
+}
+@container vinyl-label (max-width: 62px) {
+  .vinyl-label[data-edition] > small, .vinyl-label-side { display: none; }
+  .vinyl-label[data-edition] > .artwork-station-name { font-size: clamp(5px, 10cqw, 7px); }
+}

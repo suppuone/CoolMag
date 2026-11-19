@@ -1,14 +1,22 @@
 (() => {
   'use strict';
-  document.body.dataset.appBuild='3.0.163';
+  document.body.dataset.appBuild='4.1.71';
   const PRESET_LIMIT=50;
+  const {getStationCategory,stationCategoryIcon}=window;
+  function decorateRadioCard(card,station){
+    const category=getStationCategory(station);
+    card.dataset.stationCategory=category;
+    card.querySelector('b')?.insertAdjacentHTML('afterbegin',stationCategoryIcon(category));
+  }
+  const RECENT_LIMIT=30;
   const $ = id => document.getElementById(id);
   const safe = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const stationLogo = station => String(station?.logo||station?.favicon||station?.image||station?.['tvg-logo']||station?.tvg_logo||station?.icon||'').trim();
   const initialsFor = title => String(title||'LIVE').trim().split(/\s+/).filter(Boolean).slice(0,3).map(word=>word[0]).join('').toUpperCase()||'TV';
   function logoInitials(image){const card=image.closest('.radio-mini-card,.tv-rail-card,.preset-card,.result-row'),title=card?.querySelector('.radio-mini-card b,.tv-rail-copy b,.preset-card>b,.result-copy b')?.textContent||$('radio-title')?.textContent||'LIVE';return initialsFor(title);}
   document.addEventListener('error',event=>{const image=event.target;if(!image||image.tagName!=='IMG')return;const source=image.currentSrc||image.src;if(/^http:\/\//i.test(source)&&image.dataset.httpsRetry!=='1'){image.dataset.httpsRetry='1';image.src=source.replace(/^http:/i,'https:');return;}if(image.dataset.namedFallback!=='1'){const title=image.alt||image.closest('[aria-label]')?.getAttribute('aria-label')?.replace(/^Play /,'')||'';const station=[...radios,...tvs].find(s=>s.name===title);if(station?.fallbackLogo){image.dataset.namedFallback='1';image.src=station.fallbackLogo;return;}}const fallback=document.createElement('span');if(image.classList.contains('station-logo-badge')){fallback.className='station-logo-fallback';fallback.textContent=logoInitials(image);}else{fallback.className='logo-fallback';fallback.textContent=logoInitials(image);}image.replaceWith(fallback);},true);
-  const RADIO_STORE='retrotvra.radio-presets.v3',TV_STORE='retrotvra.tv-presets.v3',TV_ORDER_STORE='retrotvra.tv-order.dd-news-only.v1',RADIO_HIDDEN_STORE='retrotvra.radio-hidden.v9',TV_HIDDEN_STORE='retrotvra.tv-hidden.v4',VOLUME_STORE='retrotvra.volume.v1',THEME_STORE='retrotvra.theme.v2',RADIO_SKIN_STORE='retrotvra.radio-skin.v1',LEGACY_THEME_ENABLED_STORE='retrotvra.legacy-theme-enabled.v1',THEME_SWITCH_ENABLED_STORE='retrotvra.theme-switch-enabled.v1',RECENT_STORE='retrotvra.recent.v2';
+  const RADIO_STORE='retrotvra.radio-presets.v3',TV_STORE='retrotvra.tv-presets.v3',TV_ORDER_STORE='retrotvra.tv-order.dd-news-only.v1',RADIO_HIDDEN_STORE='retrotvra.radio-hidden.v9',TV_HIDDEN_STORE='retrotvra.tv-hidden.v4',VOLUME_STORE='retrotvra.volume.v1',RECENT_STORE='retrotvra.recent.v2';
+  const CONSOLE_THEME_STORE='retrotvra.console-theme.v1';
   let radios=[],tvs=[],radioPresets={},tvPresets={},recentHistory=[],radioIndex=-1,tvIndex=-1,presetMode='radio',selectedTVPresetKey=null,browserKind='radio',browserSource='library',onlineRows=[],onlineTVCache=null,onlineCountries=[],onlineGenres=[],onlineOffset=0,onlineVisibleLimit=100,onlineHasMore=false,onlineSearchDone=false,hls=null,radioHls=null,currentRadioSource='',toastTimer=null,dragState=null,languageCatalog=[],languageNameByCode=new Map(),languageNameByKey=new Map();
   const audio=$('radio-audio'),video=$('tv-video');
 
@@ -16,12 +24,48 @@
   const DEAD_HIDDEN_STORE='retrotvra.dead-hidden.v1';
   const deadHidden=loadStore(DEAD_HIDDEN_STORE,{radio:[],tv:[]});
   const isDeadHidden=(kind,station)=>(deadHidden[kind]||[]).includes(kind==='radio'?stationKey(station):station.url);
+  const recoveryStatusTimers={};
+  const continuousRetryTimers={radio:0,tv:0};
+  function cancelContinuousRetry(kind){
+    clearTimeout(continuousRetryTimers[kind]);
+    continuousRetryTimers[kind]=0;
+  }
+  function setRecoveryStatus(kind,message){
+    clearTimeout(recoveryStatusTimers[kind]);
+    const screen=$(kind+'-screen');
+    screen.dataset.recoveryStatus=message;
+    if(message){
+      $('v4-'+kind+'-station').textContent=message;
+      notify(message);
+    }
+  }
   const recoveryOptions=kind=>({
     current:()=>kind==='radio'?radioCurrent():tvCurrent(),
     key:station=>kind==='radio'?stationKey(station):station.url,
-    rows:()=>currentRows(kind),
-    play:(station,automatic)=>kind==='radio'?playRadio(station,automatic):playTV(station,automatic),notify,
-    onInitialTimeout:kind==='radio'?()=>{stopRadio();$('radio-status').textContent='STREAM COULD NOT START - TAP TO RETRY';}:undefined
+    rows:()=>recoveryRows(kind),
+    play:(station,automatic)=>kind==='radio'?playRadio(station,automatic):playTV(station,automatic),
+    onStart:()=>setRecoveryStatus(kind,''),
+    onSkip:()=>{
+      const message='SIGNAL UNAVAILABLE · SKIPPING TO NEXT…';
+      setRecoveryStatus(kind,message);
+      recoveryStatusTimers[kind]=setTimeout(()=>{
+        const screen=$(kind+'-screen'),display=$('v4-'+kind+'-station');
+        if(screen.dataset.recoveryStatus!==message)return;
+        setRecoveryStatus(kind,'');
+        display.textContent=(kind==='radio'?radioCurrent():tvCurrent())?.name||'';
+      },2400);
+    },
+    onExhausted:()=>{
+      const station=kind==='radio'?radioCurrent():tvCurrent();
+      if(kind==='radio')stopRadio();else stopTV();
+      setRecoveryStatus(kind,'SIGNAL UNAVAILABLE · RETRYING IN 30s');
+      if(kind==='radio')$('radio-status').textContent='SIGNAL UNAVAILABLE · RETRYING IN 30s';
+      continuousRetryTimers[kind]=setTimeout(()=>{
+        continuousRetryTimers[kind]=0;
+        if(kind==='radio')playRadio(station||currentRows(kind)[0]);
+        else playTV(station||currentRows(kind)[0]);
+      },30000);
+    }
   });
   const radioRecovery=createStreamRecovery(audio,recoveryOptions('radio'));
   const tvRecovery=createStreamRecovery(video,recoveryOptions('tv'));
@@ -36,18 +80,11 @@
   $('hide-tv-channel').onclick=()=>hideCurrentChannel('tv');
   $('restore-hidden-channels').onclick=()=>{deadHidden.radio=[];deadHidden.tv=[];saveStore(DEAD_HIDDEN_STORE,deadHidden);refreshChannelLists();notify('Hidden channels restored.');};
 
-  const THEME_GLOW={retro:'warm',modern:'white',ultra:'color'};
-  let legacyThemeEnabled=false,themeSwitchEnabled=true;
-  try{const legacySetting=localStorage.getItem(LEGACY_THEME_ENABLED_STORE),themeSetting=localStorage.getItem(THEME_SWITCH_ENABLED_STORE);if(legacySetting!==null)legacyThemeEnabled=legacySetting==='true';if(themeSetting!==null)themeSwitchEnabled=themeSetting==='true';}catch{}
-  let radioSkin='modern';try{radioSkin=localStorage.getItem(RADIO_SKIN_STORE)==='legacy'?'legacy':'modern';}catch{}
-  if(!legacyThemeEnabled)radioSkin='modern';
-  document.body.dataset.radioSkin=radioSkin;
-  function syncLegacyStyles(){document.querySelector('link[rel="stylesheet"][href^="styles.css"],link[rel="stylesheet"][href^="legacy-github.css"]').href=(radioSkin==='legacy'?'legacy-github.css':'styles.css')+'?v=3.0.163';}
-  syncLegacyStyles();
-  let themeMode='ultra';try{themeMode=localStorage.getItem(THEME_STORE)||'ultra';}catch{}
-  if(!['retro','modern','ultra'].includes(themeMode))themeMode='ultra';
-  let glowMode=THEME_GLOW[themeMode];
-  const DEFAULT_TV_CHANNEL={"name": "BBC News South Asia (720p)", "group": "News", "logo": "https://xstreamcp-assets-msp.streamready.in/assets/LIVETV/LIVECHANNEL/LIVETV_LIVETVCHANNEL_BBC_NEWS/images/LOGO_HD/image.png", "url": "https://mumbai-edge.smartplaytv.in/BBCNews/index.m3u8", "options": [], "genre": "News", "country": "United Kingdom", "language": "English", "tags": "English news curated", "curated": true, "curatedOrder": 4, "presetNumber": 13, "presetLanguage": "International English", "presetGenre": "News", "catalogSource": "Saved preset"};
+  const glowMode='color';
+  document.body.dataset.glow=glowMode;
+  const DEFAULT_RADIO_KEY='https://stream.zeno.fm/rc7dnetgrwzuv';
+  let radioStartupPending=true;
+  const DEFAULT_TV_CHANNEL=Object.values(window.COOLRADTV_DEFAULTS.tv)[0];
   let visualizerPattern='mesh'; // Fresh openings always start with Flowing Mesh.
   if(!['wave','halo','mesh','mix','off'].includes(visualizerPattern))visualizerPattern='mesh';
   let visualizerMixBag=[],visualizerMixCurrent='',visualizerMixSince=0;
@@ -188,14 +225,35 @@
 
   function loadStore(key,fallback={}){try{const value=JSON.parse(localStorage.getItem(key)||'null');return value&&typeof value==='object'?value:fallback;}catch{return fallback;}}
   function setRadioVolume(level,persist=true){const value=Math.max(0,Math.min(100,Math.round(Number(level)||0)));$('radio-volume').value=String(value);$('radio-volume').style.setProperty('--volume-fill',`${value}%`);$('radio-volume-track').style.setProperty('--volume-angle',`${-135+value*2.7}deg`);audio.volume=value/100;radioTone.refreshVolume();$('volume-number').textContent=String(value);radioVolumeKnob.setValue(value);if(persist)saveStore(VOLUME_STORE,value);}
-  function toggleRadioSkin(){if(!legacyThemeEnabled)return;radioSkin=radioSkin==='legacy'?'modern':'legacy';document.body.dataset.radioSkin=radioSkin;syncLegacyStyles();try{localStorage.setItem(RADIO_SKIN_STORE,radioSkin);}catch{}notify(radioSkin==='legacy'?'GitHub v2 look enabled':'Current radio look enabled');}
-  // Theme switching is deliberately presentation-only: it does not navigate,
-  // reload, or touch either live media element, so the current stream continues.
-  function applyTheme(value,force=false){if(!themeSwitchEnabled&&!force){const select=$('theme-choice');if(select)select.value=themeMode;return;}themeMode=['retro','modern','ultra'].includes(value)?value:'ultra';glowMode=THEME_GLOW[themeMode];document.body.dataset.theme=themeMode;document.body.dataset.glow=glowMode;const select=$('theme-choice');if(select)select.value=themeMode;try{localStorage.setItem(THEME_STORE,themeMode);}catch{}retryBlockedRadio();}
-  function syncThemeSettings(){const legacy=$('legacy-theme-enabled'),theme=$('theme-switch-enabled'),picker=$('theme-choice');legacy.checked=legacyThemeEnabled;theme.checked=themeSwitchEnabled;picker.disabled=!themeSwitchEnabled;document.body.dataset.themeSwitch=themeSwitchEnabled?'on':'off';}
-  function setLegacyThemeEnabled(enabled){legacyThemeEnabled=Boolean(enabled);try{localStorage.setItem(LEGACY_THEME_ENABLED_STORE,String(legacyThemeEnabled));}catch{}if(!legacyThemeEnabled){legacyRadioTapCount=0;clearTimeout(legacyRadioTapTimer);if(radioSkin==='legacy'){radioSkin='modern';document.body.dataset.radioSkin='modern';syncLegacyStyles();try{localStorage.setItem(RADIO_SKIN_STORE,'modern');}catch{}}}}
-  function setThemeSwitchEnabled(enabled){themeSwitchEnabled=Boolean(enabled);try{localStorage.setItem(THEME_SWITCH_ENABLED_STORE,String(themeSwitchEnabled));}catch{}syncThemeSettings();}
-  function saveStore(key,value){try{localStorage.setItem(key,JSON.stringify(value));}catch{notify('This browser could not save your presets.');}}
+  const consoleThemes=['retro','modern','weathered','shattered'];
+  function applyConsoleTheme(theme){
+    document.body.dataset.theme=theme;
+    const button=$('theme-choice');
+    const next=consoleThemes[(consoleThemes.indexOf(theme)+1)%consoleThemes.length];
+    button.setAttribute('aria-pressed',String(theme!=='retro'));
+    button.textContent=theme[0].toUpperCase()+theme.slice(1);
+    button.setAttribute('aria-label','Theme '+theme+'. Switch to '+next);
+    button.title='Switch to '+next+' theme';
+  }
+  // Start each opening in Retro; the theme button can change this session.
+  let consoleTheme='retro';
+  for(const panel of document.querySelectorAll('.crt-module,.receiver-panel')){
+    const overlay=document.createElement('span');
+    overlay.className='weathered-glass-overlay';
+    overlay.setAttribute('aria-hidden','true');
+    panel.append(overlay);
+  }
+  const weatheredFrame=document.createElement('span');
+  weatheredFrame.className='weathered-chassis-frame';
+  weatheredFrame.setAttribute('aria-hidden','true');
+  document.querySelector('.broadcast-chassis').append(weatheredFrame);
+  applyConsoleTheme(consoleTheme);
+  $('theme-choice').addEventListener('click',()=>{
+    consoleTheme=consoleThemes[(consoleThemes.indexOf(consoleTheme)+1)%consoleThemes.length];
+    applyConsoleTheme(consoleTheme);
+    try{localStorage.setItem(CONSOLE_THEME_STORE,document.body.dataset.theme);}catch{}
+  });
+  function saveStore(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true;}catch{notify('This browser could not save your presets.');return false;}}
   function stationKey(item){return String(item?.stationuuid||item?.url_resolved||item?.url||item?.name||'');}
   function notify(message){const el=$('toast');el.textContent=message;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2400);}
   let closeSplash=()=>{};
@@ -263,151 +321,48 @@
     const fill=(id,rows)=>{const countries=[...new Set(rows.map(s=>String(s.country||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));$(id).innerHTML='<option value="all">All countries</option>'+countries.map(name=>`<option value="${safe(name)}">${safe(name)}</option>`).join('');};
     fill('radio-country',radios);fill('tv-country',tvs);
   }
-  function mergeInitialPresets(remote,storeKey,type){
-    const saved=loadStore(storeKey,{}),hiddenKey=type==='tv'?TV_HIDDEN_STORE:RADIO_HIDDEN_STORE,hidden=new Set(loadStore(hiddenKey,[])),merged={...remote};
-    for(const key of hidden)delete merged[key];
-    for(const [key,item] of Object.entries(saved))if(item&&typeof item==='object'&&!hidden.has(key)){
-      if(Object.prototype.hasOwnProperty.call(remote,key))merged[key]={...item,...remote[key]};
-      else if(item._kind===type)merged[key]=item;
+  function loadPresets(catalogue,storeKey,kind){
+    const saved=loadStore(storeKey,null);
+    const hasSaved=Boolean(saved&&!Array.isArray(saved));
+    const excluded=hasSaved?[]:loadStore(kind==='tv'?TV_HIDDEN_STORE:RADIO_HIDDEN_STORE,[]);
+    const hidden=new Set(Array.isArray(excluded)?excluded:[]);
+    const source=hasSaved?saved:catalogue;
+    const entries=new Map();
+    for(const [storedKey,station] of Object.entries(source)){
+      if(!station||(kind==='tv'?!station.url:!(station.url_resolved||station.url)))continue;
+      const key=presetKey(kind,station);
+      if(hidden.has(storedKey)||hidden.has(key)||entries.has(key))continue;
+      const preset={...catalogue[key],...station};
+      if(kind==='radio'&&key==='https://stream.zeno.fm/rc7dnetgrwzuv'&&/^cool retro radio tamil$/i.test(preset.name||''))preset.name='COOL RETRO RADIO';
+      entries.set(key,preset);
     }
-    return merged;
-  }
-  function applyTVOrder(presets){
-    const keys=Object.keys(presets),saved=loadStore(TV_ORDER_STORE,[]);if(!Array.isArray(saved)||!saved.length)return presets;
-    const ordered={};for(const key of saved)if(Object.prototype.hasOwnProperty.call(presets,key))ordered[key]=presets[key];
-    for(const key of keys)if(!Object.prototype.hasOwnProperty.call(ordered,key))ordered[key]=presets[key];return ordered;
+    return Object.fromEntries([...entries].slice(0,PRESET_LIMIT));
   }
   async function fetchData(){
-    // File URLs cannot fetch JSON reliably. Load the fallback only in that mode.
-    if(window.location.protocol==='file:'){
-      await new Promise(resolve=>{
-        const script=document.createElement('script');script.defer=true;
-        script.src='preset-defaults.js?v=4.0.33';
-        script.onload=resolve;script.onerror=resolve;document.head.append(script);
-      });
-    }
     const builtIn=window.COOLRADTV_DEFAULTS;
-    if(builtIn){radios=Object.entries(builtIn.radio).map(([key,item])=>({...item,_key:key}));tvs=Object.entries(builtIn.tv).map(([key,item])=>({...item,url:item.url||key}));}
-
-    for(const [next,previous] of [[RADIO_STORE,'retrotvra.radio-presets.v1'],[TV_STORE,'retrotvra.tv-presets.v1']]){
-      if(loadStore(next,null)===null){const saved=loadStore(previous,null);if(saved)saveStore(next,saved);}
+    if(!builtIn?.radio||!builtIn?.tv)throw new Error('Default presets could not be loaded');
+    radios=Object.entries(builtIn.radio).map(([key,station])=>({...station,_key:key}));
+    tvs=Object.entries(builtIn.tv).map(([key,station])=>({...station,url:station.url||key}));
+    const revisionStore='retrotvra.defaults-revision.v1';
+    if(loadStore(revisionStore,{}).revision!==builtIn.revision){
+      const radioSaved=saveStore(RADIO_STORE,builtIn.radio);
+      const tvSaved=saveStore(TV_STORE,builtIn.tv);
+      if(radioSaved&&tvSaved)saveStore(revisionStore,{revision:builtIn.revision});
     }
-
-    try{
-      if(window.location.protocol==='file:')throw new Error('Using file catalogue');
-      const catalogue=await fetch('stations.json',{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error('Catalogue unavailable');return r.json();}).catch(()=>null);
-      const [r,t]=catalogue?[{ok:true,json:async()=>catalogue.radio},{ok:true,json:async()=>catalogue.tv}]:await Promise.all([fetch('data/radio-presets.json',{cache:'no-cache'}),fetch('data/tv-presets.json',{cache:'no-cache'})]);
-      if(r.ok){const raw=await r.json();radios=Object.entries(raw).map(([key,item])=>({...item,_key:key})).filter(item=>item.url||item.url_resolved);}
-      if(t.ok){const raw=await t.json();tvs=Object.entries(raw).map(([key,item])=>({...item,url:item.url||key,country:item.country||inferTVCountry(item.name)})).filter(item=>item.url);}
-    }catch{ /* Keep the safe sample presets below if opened without a local web server. */}
-    if(!radios.length)radios=[
-      {stationuuid:'sample-mirchi',name:'Radio Mirchi Hindi',country:'India',url:'https://stream.zeno.fm/0r0xa792kwzuv',favicon:'',tags:'music hindi'},
-      {stationuuid:'sample-bbc',name:'BBC World Service',country:'United Kingdom',url:'https://stream.live.vc.bbcmedia.co.uk/bbc_world_service',tags:'news talk'},
-      {stationuuid:'sample-kantipur',name:'Kantipur FM',country:'Nepal',url:'https://radio-broadcast.ekantipur.com/stream',tags:'news nepali'},
-      {stationuuid:'sample-oli',name:'Oli 96.8 FM',country:'Singapore',url:'https://playerservices.streamtheworld.com/api/livestream-redirect/OLI968FMAAC.aac',tags:'music tamil'}
-    ];
-    if(!tvs.length)tvs=[
-      DEFAULT_TV_CHANNEL,
-      {name:'France 24 English',group:'World News',country:'France',url:'https://live.france24.com/hls/live/2037220/F24_EN_HI_HLS/master.m3u8',logo:''},
-      {name:'DW English',group:'World News',country:'Germany',url:'https://dwamdstream104.akamaized.net/hls/live/2015530/dwstream104/stream04/streamPlaylist.m3u8',logo:''}
-    ];
-    radioPresets=mergeInitialPresets(Object.fromEntries(radios.map(s=>[stationKey(s),s])),RADIO_STORE,'radio');
-    tvPresets=applyTVOrder(mergeInitialPresets(Object.fromEntries(tvs.map(station=>[station.url,station])),TV_STORE,'tv'));
-    if(!loadStore('retrotvra.tv-news20.2026-11-12',null)){saveStore('retrotvra.tv-news20.previous',tvPresets);tvPresets=Object.fromEntries(tvs.map(s=>[s.url,s]));saveStore('retrotvra.tv-news20.2026-11-12',{done:true});}
-    const ownStation=radios.find(station=>(station.url_resolved||station.url)==='https://stream.zeno.fm/rc7dnetgrwzuv');
-    if(ownStation&&!loadStore('retrotvra.own-station-first.rc7dnetgrwzuv',null)){
-      saveStore('retrotvra.own-station-first.rc7dnetgrwzuv.previous',radioPresets);
-      const entries=Object.entries(radioPresets).filter(([key])=>key!==stationKey(ownStation)).slice(0,PRESET_LIMIT-1);
-      entries.unshift([stationKey(ownStation),ownStation]);radioPresets=Object.fromEntries(entries);
-      saveStore('retrotvra.own-station-first.rc7dnetgrwzuv',{applied:true});
-    }
-    const curatedVersion='retrotvra.curated-defaults.2026-11-09.v1';
-    if(!loadStore(curatedVersion,null)){
-      saveStore(curatedVersion+'.previous',{radio:radioPresets,tv:tvPresets});
-      radioPresets=Object.fromEntries(radios.slice(0,PRESET_LIMIT).map(station=>[stationKey(station),station]));
-      tvPresets=Object.fromEntries(tvs.slice(0,PRESET_LIMIT).map(station=>[station.url,station]));
-      saveStore(TV_ORDER_STORE,Object.keys(tvPresets));
-      // Object marker is compatible with loadStore; later reorders remain preserved.
-      saveStore(curatedVersion,{applied:true});
-    }
-    radioPresets=Object.fromEntries(Object.entries(radioPresets).slice(0,PRESET_LIMIT));
-    tvPresets=Object.fromEntries(Object.entries(tvPresets).slice(0,PRESET_LIMIT));
-    if(!loadStore('retrotvra.catalogue50.2026-11-12',null)){saveStore('retrotvra.catalogue50.previous',{radio:radioPresets,tv:tvPresets});radioPresets=Object.fromEntries(radios.slice(0,50).map(s=>[stationKey(s),s]));tvPresets=Object.fromEntries(tvs.slice(0,50).map(s=>[s.url,s]));saveStore(TV_ORDER_STORE,Object.keys(tvPresets));saveStore('retrotvra.catalogue50.2026-11-12',{done:true});}
-    if(!loadStore('retrotvra.cooltv-first.2026-11-12.chennai-central',null)){const first=tvs.find(s=>s.name==='COOLtv');if(first){tvPresets=Object.fromEntries([[first.url,first],...Object.entries(tvPresets).filter(([key])=>key!==first.url)].slice(0,50));saveStore(TV_ORDER_STORE,Object.keys(tvPresets));saveStore('retrotvra.cooltv-first.2026-11-12.chennai-central',{done:true});}}
-    if(!loadStore('retrotvra.tv-dd-news-only.2026-11-12',null)){saveStore('retrotvra.tv-dd-news-only.previous',tvPresets);tvPresets=Object.fromEntries(tvs.slice(0,50).map(s=>[s.url,s]));saveStore(TV_ORDER_STORE,Object.keys(tvPresets));saveStore('retrotvra.tv-dd-news-only.2026-11-12',{done:true});}
-    if(!loadStore('retrotvra.radio-fm-air.2026-11-12',null)){saveStore('retrotvra.radio-fm-air.previous',radioPresets);radioPresets=Object.fromEntries(radios.slice(0,50).map(s=>[stationKey(s),s]));saveStore('retrotvra.radio-fm-air.2026-11-12',{done:true});}
-    if(!loadStore('retrotvra.remove-unavailable-news.2026-11-12',null)){for(const [key,station] of Object.entries(tvPresets))if(['Republic TV','Republic Bharat','Sun News','Aaj Tak'].includes(station.name))delete tvPresets[key];saveStore('retrotvra.remove-unavailable-news.2026-11-12',{done:true});}
-    // Apply the renamed station and requested order once; later user reorders stay saved.
-    const nepaliUpdate='retrotvra.cool-retro-nepali-second.2026-11-15';
-    if(!loadStore(nepaliUpdate,null)){
-      const first=radios.find(s=>stationKey(s)==='https://stream.zeno.fm/rc7dnetgrwzuv');
-      const second=radios.find(s=>stationKey(s)==='https://stream.zeno.fm/g2szgxxpqwzuv');
-      if(first&&second){
-        saveStore(nepaliUpdate+'.previous',radioPresets);
-        const priority=[first,second].map(s=>[stationKey(s),s]);
-        const remaining=Object.entries(radioPresets).filter(([key,s])=>!priority.some(([id])=>id===key||id===stationKey(s)));
-        radioPresets=Object.fromEntries([...priority,...remaining].slice(0,PRESET_LIMIT));
-        saveStore(nepaliUpdate,{applied:true});
-      }
-    }
-    // Refresh only this station's artwork, preserving saved order and stream settings.
-    const nagpuriIconUpdate='retrotvra.cool-nagpuri-icon.2026-11-15';
-    if(!loadStore(nagpuriIconUpdate,null)){
-      const logo='assets/station-logos/cool-nagpuri.png';
-      for(const station of Object.values(radioPresets)){
-        if(stationKey(station)==='https://stream.zeno.fm/74mzdgk024zuv'||station.url==='https://stream.zeno.fm/74mzdgk024zuv')Object.assign(station,{logo,favicon:logo,fallbackLogo:logo});
-      }
-      saveStore(nagpuriIconUpdate,{applied:true});
-    }
-    // Update COOL 90s artwork without changing saved station order.
-    const cool90sIconUpdate='retrotvra.cool-90s-icon.2026-11-15';
-    if(!loadStore(cool90sIconUpdate,null)){
-      const logo='assets/station-logos/cool-90s.png';
-      for(const station of Object.values(radioPresets)){
-        if(stationKey(station)==='https://stream.zeno.fm/fdgs82xkzhhvv'||station.url==='https://stream.zeno.fm/fdgs82xkzhhvv')Object.assign(station,{logo,favicon:logo,fallbackLogo:logo});
-      }
-      saveStore(cool90sIconUpdate,{applied:true});
-    }
-    const kishoreUpdate='retrotvra.kishore-kumar-hits.2026-11-15';
-    if(!loadStore(kishoreUpdate,null)){
-      const station=radios.find(s=>stationKey(s)==='https://stream.zeno.fm/0ghtfp8ztm0uv');
-      if(station){
-        saveStore(kishoreUpdate+'.previous',radioPresets);
-        const entries=Object.entries(radioPresets).filter(([key])=>key!==stationKey(station));
-        const after=entries.findIndex(([,s])=>stationKey(s)==='https://stream.zeno.fm/fdgs82xkzhhvv');
-        entries.splice(after<0?Math.min(4,entries.length):after+1,0,[stationKey(station),station]);
-        radioPresets=Object.fromEntries(entries.slice(0,PRESET_LIMIT));
-        saveStore(kishoreUpdate,{applied:true});
-      }
-    }
-    // Refresh the portrait in saved presets and history without changing station order.
-    for(const station of Object.values(radioPresets)){
-      if(stationKey(station)==='https://stream.zeno.fm/0ghtfp8ztm0uv')Object.assign(station,{logo:'assets/station-logos/kishore-kumar-hits.png',favicon:'assets/station-logos/kishore-kumar-hits.png',fallbackLogo:'assets/station-logos/kishore-kumar-hits.png'});
-    }
-    const storedRecent=loadStore(RECENT_STORE,[]);recentHistory=Array.isArray(storedRecent)?storedRecent.filter(item=>item&&item.url&&item.name).slice(0,40):[];
-    for(const entry of recentHistory)if(entry.kind==='radio'&&entry.key==='https://stream.zeno.fm/0ghtfp8ztm0uv')entry.logo='assets/station-logos/kishore-kumar-hits.png';saveStore(RECENT_STORE,recentHistory);
-    // Remove the retired channel from existing saved lists as well as fresh installs.
-    const retiredTV=station=>/^jaya\s*plus$/i.test(String(station?.name||'').trim())||/\/JayaPLus\//i.test(String(station?.url||''));
-    tvs=tvs.filter(station=>!retiredTV(station));
-    tvPresets=Object.fromEntries(Object.entries(tvPresets).filter(([,station])=>!retiredTV(station)));
-    recentHistory=recentHistory.filter(entry=>entry.kind!=='tv'||!retiredTV(entry));
-    saveStore(RECENT_STORE,recentHistory);saveStore(TV_ORDER_STORE,Object.keys(tvPresets));
-    // Repair the default station in existing installations, including hidden/trimmed lists.
-    const nagpuriURL='https://stream.zeno.fm/74mzdgk024zuv';
-    let nagpuri=radios.find(station=>(station.url_resolved||station.url)===nagpuriURL);
-    if(!nagpuri){nagpuri={stationuuid:nagpuriURL,name:'COOL Nagpuri',url:nagpuriURL,url_resolved:nagpuriURL,country:'India',logo:'assets/station-logos/cool-nagpuri.png',favicon:'assets/station-logos/cool-nagpuri.png'};radios.unshift(nagpuri);}
-    const nagpuriRestore='retrotvra.v4.restore-cool-nagpuri.v1';
-    if(!loadStore(nagpuriRestore,null)){
-      const key=stationKey(nagpuri);
-      radioPresets=Object.fromEntries([[key,nagpuri],...Object.entries(radioPresets).filter(([savedKey,station])=>savedKey!==key&&(station.url_resolved||station.url)!==nagpuriURL)].slice(0,PRESET_LIMIT));
-      saveStore(RADIO_HIDDEN_STORE,(loadStore(RADIO_HIDDEN_STORE,[])||[]).filter(hidden=>hidden!==key&&hidden!==nagpuriURL));
-      deadHidden.radio=(deadHidden.radio||[]).filter(hidden=>hidden!==key&&hidden!==nagpuriURL);saveStore(DEAD_HIDDEN_STORE,deadHidden);
-      saveStore(nagpuriRestore,{restored:true});
-    }
-    saveStore(RADIO_STORE,radioPresets);saveStore(TV_STORE,tvPresets);
-    // Launch on COOL Nagpuri without changing the saved station order.
-    const launchStation=currentRows('radio').find(station=>station.name==='COOL Nagpuri');
-    if(launchStation)radioIndex=radios.findIndex(station=>stationKey(station)===stationKey(launchStation));
+    radioPresets=loadPresets(builtIn.radio,RADIO_STORE,'radio');
+    tvPresets=loadPresets(builtIn.tv,TV_STORE,'tv');
+    const storedRecent=loadStore(RECENT_STORE,[]);
+    recentHistory=normaliseRecent(Array.isArray(storedRecent)?storedRecent:[]);
+    for(const entry of recentHistory)if(entry.kind==='radio'&&entry.key==='https://stream.zeno.fm/rc7dnetgrwzuv'&&/^cool retro radio tamil$/i.test(entry.name||''))entry.name='COOL RETRO RADIO';
+    for(const entry of recentHistory)if(entry.kind==='radio'&&entry.key==='https://stream.zeno.fm/0ghtfp8ztm0uv')entry.logo='assets/station-logos/kishore-kumar-hits.png';
+    saveStore(RECENT_STORE,recentHistory);
+    saveStore(RADIO_STORE,radioPresets);
+    saveStore(TV_STORE,tvPresets);
+    saveStore(TV_ORDER_STORE,Object.keys(tvPresets));
+    const launchRadio=builtIn.radio[DEFAULT_RADIO_KEY]||Object.values(radioPresets)[0];
+    const launchTV=Object.values(tvPresets)[0];
+    radioIndex=launchRadio?radios.findIndex(station=>stationKey(station)===stationKey(launchRadio)):-1;
+    tvIndex=launchTV?tvs.findIndex(station=>station.url===launchTV.url):-1;
     fillCountries();populateExploreFilters();renderPresets();renderTVRail();renderRemotePresets();renderRadioDisplay();renderExplore();
   }
   const genreRows={radio:null,tv:null};
@@ -417,42 +372,70 @@
     genreRows[kind]=Array.isArray(rows)?rows:null;
     if(kind==='radio')renderRadioShortcuts();else renderRemotePresets();
   };
+  window.retroPresetRows=kind=>listFor(kind);
   function listFor(kind){return kind==='tv'?Object.values(tvPresets):Object.values(radioPresets);}
+  function presetKey(kind,station){return kind==='tv'?station?.url:stationKey(station||{});}
   function selectedCountry(kind){return $(kind==='tv'?'tv-country':'radio-country')?.value||'all';}
   function currentRows(kind){const rows=(genreRows[kind]??listFor(kind)).filter(s=>!isDeadHidden(kind,s));const country=selectedCountry(kind);return rows.filter(item=>country==='all'||String(item.country||'').toLowerCase()===country.toLowerCase());}
+  function recoveryRows(kind){
+    const rows=currentRows(kind),order=window.retroStationTunerOrder?.(kind);
+    return order?.length?order.map(index=>rows[index]).filter(Boolean):rows;
+  }
   let radioAutoplayBlocked=false;
   function retryBlockedRadio(){
     if(!radioAutoplayBlocked||document.querySelector('.screen.active')?.id!=='radio-screen')return;
     radioAutoplayBlocked=false;
-    startRadioAudio().then(()=>{$('radio-status').textContent='Playing · '+(radioCurrent()?.name||'Radio');}).catch(error=>{radioAutoplayBlocked=error?.name==='NotAllowedError';});
+    $('radio-art').dataset.playbackBlocked='false';
+    const generation=radioPlaybackGeneration;
+    radioRecovery.begin();
+    startRadioAudio().then(()=>{
+      if(generation===radioPlaybackGeneration&&!audio.paused)$('radio-status').textContent='Playing · '+(radioCurrent()?.name||'Radio');
+    }).catch(error=>{
+      if(generation!==radioPlaybackGeneration||error?.name==='AbortError')return;
+      radioRecovery.reject(error);
+      radioAutoplayBlocked=error?.name==='NotAllowedError';
+      $('radio-art').dataset.playbackBlocked=String(radioAutoplayBlocked);
+    });
   }
   document.addEventListener('pointerup',event=>{if(event.isTrusted&&!event.target.closest('button,a,input,select,textarea'))retryBlockedRadio();});
   document.addEventListener('coolradio-onboarding-ready',()=>startOpenedPlayer());
   // Retry browser-blocked sound within the next real user activation.
-  for(const name of ['pointerdown','keydown'])document.addEventListener(name,event=>{if(event.isTrusted&&radioAutoplayBlocked)retryBlockedRadio();},{capture:true});
+  for(const name of ['pointerdown','keydown'])document.addEventListener(name,event=>{
+    // Play and its Space shortcut already handle the retry themselves.
+    if(event.isTrusted&&radioAutoplayBlocked&&event.code!=='Space'&&!event.target.closest?.('#radio-play'))retryBlockedRadio();
+  },{capture:true});
   function startOpenedPlayer(userInitiated=false,reopen=false){
     // The v4 receiver starts automatically; onboarding does not gate playback.
     if(!userInitiated&&$('welcome-splash-v2')&&!$('welcome-splash-v2').classList.contains('leaving'))return;
     const screen=document.querySelector('.screen.active')?.id;
     if(screen==='radio-screen'){
       if(!reopen&&radioHls&&!audio.getAttribute('src'))return;
-      if(!reopen&&(audio.getAttribute('src')||radioHls)){if(audio.paused)startRadioAudio().catch(()=>notify('Tap Play to start radio.'));return;}
+      if(!reopen&&(audio.getAttribute('src')||radioHls))return;
       const rows=currentRows('radio');
-      const station=rows.find(item=>stationKey(item)===stationKey(radioCurrent()||{}))||rows[0];if(station)playRadio(station);
+      const station=(radioStartupPending?radios.find(item=>stationKey(item)===DEFAULT_RADIO_KEY):null)
+        ||rows.find(item=>stationKey(item)===stationKey(radioCurrent()||{}))||rows[0];
+      if(station){radioStartupPending=false;playRadio(station);}
     }else if(screen==='tv-screen'){
       if(!reopen&&hls&&!video.getAttribute('src'))return;
-      if(!reopen&&(video.getAttribute('src')||hls)){if(video.paused)video.play().catch(()=>notify('Tap Play to start TV.'));return;}
+      if(!reopen&&(video.getAttribute('src')||hls))return;
       const rows=currentRows('tv');const station=rows.find(row=>row.url===tvCurrent()?.url)||rows[0]||tvs.find(row=>row.url===DEFAULT_TV_CHANNEL.url);if(station)playTV(station);
     }
   }
   let lastPlayerScreen='radio-screen';
-  function setScreen(screenId,userInitiated=false){
+  function setScreen(screenId,userInitiated=false,startPlayer=true){
     if(!$(screenId)?.classList.contains('screen'))return;
     const previous=document.querySelector('.screen.active')?.id;
+    if(previous==='presets-screen'&&screenId!==previous&&cancelPresetDrag)renderPresets();
     document.dispatchEvent(new CustomEvent('retro-mode-changing',{detail:{screenId,previous}}));
     if(screenId!=='tv-screen')tvAutoRotation.leave();
-    if(screenId==='tv-screen'&&(audio.src||radioHls))stopRadio();
-    if(screenId==='radio-screen'&&(hls||youtubePlayer||youtubeHost||video.src||video.currentSrc))stopTV();
+    if(screenId==='tv-screen'){
+      cancelContinuousRetry('radio');
+      if(audio.src||radioHls)stopRadio();else radioRecovery.stop();
+    }
+    if(screenId==='radio-screen'){
+      cancelContinuousRetry('tv');
+      if(hls||youtubePlayer||youtubeHost||video.src||video.currentSrc)stopTV();else tvRecovery.stop();
+    }
     document.querySelectorAll('.screen').forEach(node=>node.classList.toggle('active',node.id===screenId));
     document.querySelectorAll('.nav-item[data-screen]').forEach(node=>node.classList.toggle('active',node.dataset.screen===screenId));
     const playerActive=screenId==='radio-screen'||screenId==='tv-screen';
@@ -464,7 +447,7 @@
     document.querySelectorAll('[data-mode-screen]').forEach(node=>{const active=node.dataset.modeScreen===screenId;node.classList.toggle('selected',active);node.setAttribute('aria-selected',String(active));});
     $('mode-label').textContent=screenId==='radio-screen'?'◉ RADIO MODE':screenId==='tv-screen'?'▣ TV MODE':screenId==='presets-screen'?'★ YOUR PRESETS':'⌕ EXPLORE';
     if(screenId==='presets-screen')renderPresets();
-    if((previous!==screenId||userInitiated)&&(screenId==='radio-screen'||screenId==='tv-screen'))startOpenedPlayer(userInitiated,previous!==screenId);
+    if(startPlayer&&(previous!==screenId||userInitiated)&&playerActive)startOpenedPlayer(userInitiated,previous!==screenId);
   }
   function stepScreen(direction){const order=['radio-screen','tv-screen','presets-screen','explore-screen'],active=document.querySelector('.screen.active')?.id,index=Math.max(0,order.indexOf(active));setScreen(order[(index+direction+order.length)%order.length]);}
   function radioCurrent(){return radios[radioIndex]||null;}
@@ -472,9 +455,10 @@
   function drawRadio(){
     const station=radioCurrent(),art=$('radio-art'),logo=stationLogo(station);const star=$('radio-star'),isSaved=Boolean(station&&radioPresets[stationKey(station)]);star.textContent=isSaved?'★':'☆';star.classList.toggle('saved',isSaved);star.disabled=!station;star.setAttribute('aria-label',isSaved?'Remove station from presets':'Add station to presets');art.classList.toggle('playing',!audio.paused);
     art.dataset.stationLogo=logo;
+    art.dataset.stationCategory=station?getStationCategory(station):'CASSETTE';
     if(!station){art.innerHTML='<div class="radio-dot-texture" aria-hidden="true"></div><div class="record-mark"><span class="radio-signal-icon" aria-hidden="true">◉</span><b class="radio-center-title">Choose a station</b><small class="radio-center-country">WORLD RADIO</small><div class="record-equalizer" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>';art.classList.toggle('glow-off',glowMode==='off');$('radio-status').textContent='READY · SELECT A PRESET OR EXPLORE';formatClock();return;}
     const key=stationKey(station),saved=Boolean(radioPresets[key]),stationName=station.name||'Internet Radio',name=safe(stationName),country=safe(station.country||'WORLD RADIO'),details=safe([station.country||'Internet radio',station.codec||'LIVE',station.bitrate?`${station.bitrate} KBPS`:null].filter(Boolean).join(' · '));
-    const artworkSignature=JSON.stringify([key,logo,stationName,details]);
+    const artworkSignature=JSON.stringify([key,logo,stationName,details,art.dataset.stationCategory]);
     if(art.dataset.renderedStation===artworkSignature&&art.querySelector('.record-mark')){
       $('radio-status').textContent=audio.paused?'READY — PRESS PLAY TO LISTEN':'TUNED IN — LIVE RADIO';formatClock();return;
     }
@@ -488,45 +472,61 @@
     const bounds=target.getBoundingClientRect(),center=bounds.left+bounds.width/2,reach=Math.max(1,bounds.width*.65);
     for(const card of cards){const rect=card.getBoundingClientRect(),distance=Math.abs(rect.left+rect.width/2-center),focus=Math.max(0,1-distance/reach);card.style.setProperty('--rail-scale',(0.52+focus*.68+(card.classList.contains('active')?.10:0)).toFixed(3));card.style.setProperty('--rail-opacity',(0.45+focus*.55).toFixed(3));card.style.zIndex=String(Math.round(focus*10));}
   }
-  function renderRadioShortcuts(){const target=$('radio-station-strip');if(!target)return;const rows=currentRows('radio').slice(0,PRESET_LIMIT);const current=radioCurrent();if(current&&!genreRows.radio&&!rows.some(row=>stationKey(row)===stationKey(current))){rows.unshift(current);rows.splice(PRESET_LIMIT);}target.innerHTML=rows.map((station,index)=>{const logo=stationLogo(station),name=station.name||'Radio';return `<button type="button" class="radio-mini-card ${radioCurrent()&&stationKey(radioCurrent())===stationKey(station)?'active':''}" data-radio-shortcut="${index}" title="${safe(name)}" aria-label="Play ${safe(name)}"><span class="radio-mini-logo">${logo?`<img loading="lazy" decoding="async" src="${safe(logo)}" alt="">`:`<span class="logo-fallback">${safe(initialsFor(name))}</span>`}</span><b>${safe(name)}</b></button>`;}).join('')||'<span class="empty-note">Save stations in Explore to add quick tune cards.</span>';target.querySelectorAll('[data-radio-shortcut]').forEach(button=>button.addEventListener('click',()=>{if(target.dataset.dragged==='true'){delete target.dataset.dragged;return;}const station=rows[Number(button.dataset.radioShortcut)];if(station)playRadio(station);}));
+  function renderRadioShortcuts(){const target=$('radio-station-strip');if(!target)return;const rows=currentRows('radio').slice(0,PRESET_LIMIT);target.innerHTML=rows.map((station,index)=>{const logo=stationLogo(station),name=station.name||'Radio';return `<button type="button" class="radio-mini-card ${radioCurrent()&&stationKey(radioCurrent())===stationKey(station)?'active':''}" data-radio-shortcut="${index}" title="${safe(name)}" aria-label="Play ${safe(name)}"><span class="radio-mini-logo">${logo?`<img loading="lazy" decoding="async" src="${safe(logo)}" alt="">`:`<span class="logo-fallback">${safe(initialsFor(name))}</span>`}</span><b>${safe(name)}</b></button>`;}).join('')||'<span class="empty-note">Save stations in Explore to add quick tune cards.</span>';target.querySelectorAll('[data-radio-shortcut]').forEach(button=>{
+      const station=rows[Number(button.dataset.radioShortcut)];
+      decorateRadioCard(button,station);
+    });
+    if(!target.dataset.tuneHandlerReady){
+      target.addEventListener('click',event=>{
+        const button=event.target.closest('button[data-radio-shortcut]');
+        if(!button||!target.contains(button))return;
+        if(event.isTrusted&&target.dataset.dragged==='true'){delete target.dataset.dragged;return;}
+        playRadio(currentRows('radio')[Number(button.dataset.radioShortcut)],false,Number(button.dataset.tuneDirection)||1);
+      });
+      target.dataset.tuneHandlerReady='true';
+    }
     // Browsing/centering cards must never start a different station.
     if(!target.dataset.focusEffectReady){target.addEventListener('scroll',()=>requestAnimationFrame(()=>updateRadioShortcutFocus(target)),{passive:true});window.addEventListener('resize',()=>updateRadioShortcutFocus(target));target.dataset.focusEffectReady='true';}
     requestAnimationFrame(()=>{const active=target.querySelector('.radio-mini-card.active');if(active){const rail=target.getBoundingClientRect(),card=active.getBoundingClientRect();target.scrollTo({left:Math.max(0,active.offsetLeft-(target.clientWidth-active.offsetWidth)/2),behavior:'smooth'});}updateRadioShortcutFocus(target);});
     if(!target.dataset.desktopScrollReady){let drag=null;target.addEventListener('wheel',event=>{if(Math.abs(event.deltaY)>Math.abs(event.deltaX)&&target.scrollWidth>target.clientWidth){target.scrollLeft+=event.deltaY;event.preventDefault();}},{passive:false});target.addEventListener('pointerdown',event=>{if(event.pointerType!=='mouse'||event.button!==0)return;drag={x:event.clientX,left:target.scrollLeft,moved:false,pointerId:event.pointerId,captured:false};});target.addEventListener('pointermove',event=>{if(!drag)return;const delta=event.clientX-drag.x;if(Math.abs(delta)>5&&!drag.moved){drag.moved=true;try{target.setPointerCapture(drag.pointerId);drag.captured=true;}catch{}}if(drag.moved){target.classList.add('dragging');target.scrollLeft=drag.left-delta;event.preventDefault();}});const finish=event=>{if(!drag)return;if(drag.moved){target.dataset.dragged='true';setTimeout(()=>delete target.dataset.dragged,180);}if(drag.captured&&target.hasPointerCapture(drag.pointerId)){try{target.releasePointerCapture(drag.pointerId);}catch{}}drag=null;target.classList.remove('dragging');};target.addEventListener('pointerup',finish);target.addEventListener('pointercancel',finish);window.addEventListener('pointerup',finish);target.dataset.desktopScrollReady='true';}
   }
   function renderRadioDisplay(){if(!radioPresets||!Object.keys(radioPresets).length)return;const current=radioCurrent();if(current&&!radioPresets[stationKey(current)])radioIndex=-1;const rows=currentRows('radio');if(!current&&rows.length){const selected=rows[0];radioIndex=radios.findIndex(s=>stationKey(s)===stationKey(selected));}drawRadio();renderRadioShortcuts();}
-  function rememberPlayed(kind,station){if(!station)return;const key=kind==='tv'?station.url:stationKey(station),row={kind,key,url:station.url||station.url_resolved||'',name:station.name||'Untitled',country:station.country||'',logo:stationLogo(station),playedAt:Date.now()};recentHistory=[row,...recentHistory.filter(item=>!(item.kind===kind&&item.key===key))].slice(0,40);saveStore(RECENT_STORE,recentHistory);if(presetMode==='recent')renderPresets();}
-  // Skip mixed-content sources before assigning media.src or starting a watchdog.
-  const blockedStream=station=>location.protocol==='https:'&&/^http:\/\//i.test(String(station?.url_resolved||station?.url||'').trim());
-  function secureAlternative(kind,station){
-    const rows=currentRows(kind),key=s=>kind==='radio'?stationKey(s):s.url;
-    const index=rows.findIndex(s=>key(s)===key(station));
-    for(let n=1;n<=rows.length;n++){
-      const candidate=rows[(index+n+rows.length)%rows.length];
-      if(!blockedStream(candidate))return candidate;
+  function normaliseRecent(entries){
+    const rows=[],seen=new Set();
+    for(const entry of entries){
+      if(!entry?.url||!entry.name||!['radio','tv'].includes(entry.kind))continue;
+      const key=entry.key||entry.url,identity=entry.kind+':'+key;
+      if(seen.has(identity))continue;
+      seen.add(identity);rows.push({...entry,key});
+      if(rows.length===RECENT_LIMIT)break;
     }
-    return null;
+    return rows;
   }
+  function rememberPlayed(kind,station){
+    if(!station)return;
+    const row={kind,key:presetKey(kind,station),url:(kind==='radio'?station.url_resolved:null)||station.url,name:station.name||'Untitled',country:station.country||'',logo:stationLogo(station),playedAt:Date.now()};
+    if(kind==='radio'){row.tags=station.tags;row.genre=station.genre;row.artworkCategory=station.artworkCategory;}
+    recentHistory=normaliseRecent([row,...recentHistory]);
+    saveStore(RECENT_STORE,recentHistory);
+    updatePresetCounts();
+    if(presetMode==='recent')renderPresets();
+  }
+  // Reject mixed-content sources before assigning media.src.
+  const blockedStream=station=>location.protocol==='https:'&&/^http:\/\//i.test(String(station?.url_resolved||station?.url||'').trim());
   let radioPlaybackGeneration=0,tvPlaybackGeneration=0;
-  async function startRadioAudio(){
-    const generation=radioPlaybackGeneration;
-    const ready=await (window.retroRadioMechanism?.prepare()??Promise.resolve(true));
-    if(!ready||generation!==radioPlaybackGeneration)throw new DOMException('Playback preparation cancelled','AbortError');
-    try{return await audio.play();}catch(error){window.retroRadioMechanism?.cancel();throw error;}
+  function startRadioAudio(){
+    // Match TV: start media directly and let the artwork follow playback events.
+    return audio.play();
   }
 
-  async function playRadio(station,automatic=false){
-    if(blockedStream(station)){
-      const next=secureAlternative('radio',station);
-      notify('HTTP stream blocked on HTTPS; skipping.');
-      if(next)return playRadio(next,automatic);
-      stopRadio();return;
-    }
+  async function playRadio(station,automatic=false,direction=1){
+    if(!station)return;
+    cancelContinuousRetry('radio');
+    $('radio-art').dataset.playbackBlocked='false';
     window.retroRadioMechanism?.cancel();
     const generation=++radioPlaybackGeneration;
     radioRecovery.stop();
     const src=station?.url_resolved||station?.url;
-    if(!src){notify('This station has no playable stream URL.');return;}
     radioAutoplayBlocked=false;currentRadioSource=src;
     const key=stationKey(station);radioIndex=radios.findIndex(s=>stationKey(s)===key);if(radioIndex<0){radios.unshift(station);radioIndex=0;}
     if(hls||video.src||video.currentSrc)stopTV();
@@ -535,14 +535,19 @@
     // Hls.js instead of being assigned to audio.src as a playlist URL.
     // Preserve listener volume across station changes.
     $('equalizer').classList.remove('playing');drawRadio();$('radio-status').textContent='CONNECTING · '+(station.name||'RADIO');rememberPlayed('radio',station);renderRadioShortcuts();
-    radioRecovery.begin(automatic);
+    radioRecovery.begin(automatic,direction);
+    if(!src||blockedStream(station)){radioRecovery.fail();return;}
+    if($('radio-screen').classList.contains('active')){
+      remoteMedia=audio;
+      syncRemoteMedia();
+    }
     const onRadioStarted=()=>{if(generation!==radioPlaybackGeneration)return;$('radio-art').classList.add('playing');$('equalizer').classList.add('playing');startSoundRays();$('radio-play').textContent='Ⅱ';$('radio-play').title='Pause';$('radio-play').setAttribute('aria-label','Pause');$('radio-status').textContent=`Playing · ${station.name||'Internet radio'}`;};
-    const onRadioFailed=error=>{if(generation!==radioPlaybackGeneration||error?.name==='AbortError')return;radioRecovery.reject(error);if(error?.name==='NotAllowedError'){radioAutoplayBlocked=true;$('radio-status').textContent='TAP PLAY TO START RADIO';return;}console.error('Radio playback failed:',currentRadioSource,error||'play() rejected');if(location.protocol==='https:'&&/^http:\/\//i.test(currentRadioSource)){$('radio-status').textContent='HTTPS REQUIRED · THIS STREAM USES HTTP';notify('This station uses an HTTP link, which secure pages block. Use an HTTPS stream.');}else{$('radio-status').textContent='STREAM COULD NOT START';notify('This station stream could not start. Try another station.');}};
+    const onRadioFailed=error=>{if(generation!==radioPlaybackGeneration||error?.name==='AbortError')return;radioRecovery.reject(error);if(error?.name==='NotAllowedError'){radioAutoplayBlocked=true;showRemoteCommand('Radio playback','Browser blocked audio: NotAllowedError');$('radio-art').dataset.playbackBlocked='true';if(remoteMedia===audio)syncRemoteMedia();$('radio-status').textContent='TAP PLAY TO START RADIO';return;}console.error('Radio playback failed:',currentRadioSource,error||'play() rejected');if(location.protocol==='https:'&&/^http:\/\//i.test(currentRadioSource)){$('radio-status').textContent='HTTPS REQUIRED · THIS STREAM USES HTTP';notify('This station uses an HTTP link, which secure pages block. Use an HTTPS stream.');}else{$('radio-status').textContent='STREAM COULD NOT START';notify('This station stream could not start. Try another station.');}};
     const isHls=/\.m3u8(?:$|[?#])/i.test(src);
     if(isHls&&window.Hls&&Hls.isSupported()){
       const player=new Hls({enableWorker:true,lowLatencyMode:false,maxBufferLength:18});radioHls=player;
-      player.on(Hls.Events.MANIFEST_PARSED,()=>{if(radioHls!==player)return;startRadioAudio().then(onRadioStarted).catch(onRadioFailed);});
-      player.on(Hls.Events.ERROR,(_event,data)=>{if(data.fatal&&radioHls===player){const insecure=location.protocol==='https:'&&/^http:\/\//i.test(currentRadioSource);$('radio-status').textContent=insecure?'HTTPS REQUIRED · THIS STREAM USES HTTP':'RADIO STREAM UNAVAILABLE';console.error('Radio HLS error:',data.type,data.details,currentRadioSource);notify(insecure?'This station uses an HTTP link, which secure pages block. Use an HTTPS stream.':'This radio stream is unavailable right now. Try another station.');player.destroy();radioHls=null;audio.pause();audio.removeAttribute('src');audio.load();$('radio-art').classList.remove('playing');$('equalizer').classList.remove('playing');stopSoundRays();$('radio-play').textContent='▶';}});
+      player.on(Hls.Events.MANIFEST_PARSED,()=>{if(radioHls!==player||generation!==radioPlaybackGeneration)return;startRadioAudio().then(onRadioStarted).catch(onRadioFailed);});
+      player.on(Hls.Events.ERROR,(_event,data)=>{if(data.fatal&&radioHls===player){radioRecovery.fail();const insecure=location.protocol==='https:'&&/^http:\/\//i.test(currentRadioSource);$('radio-status').textContent=insecure?'HTTPS REQUIRED · THIS STREAM USES HTTP':'RADIO STREAM UNAVAILABLE';console.error('Radio HLS error:',data.type,data.details,currentRadioSource);notify(insecure?'This station uses an HTTP link, which secure pages block. Use an HTTPS stream.':'This radio stream is unavailable right now. Try another station.');player.destroy();radioHls=null;audio.pause();audio.removeAttribute('src');audio.load();$('radio-art').classList.remove('playing');$('equalizer').classList.remove('playing');stopSoundRays();$('radio-play').textContent='▶';}});
       player.on(Hls.Events.MEDIA_ATTACHED,()=>{if(radioHls===player)player.loadSource(src);});
       player.attachMedia(audio);
     }else if(isHls&&audio.canPlayType('application/vnd.apple.mpegurl')){
@@ -551,28 +556,42 @@
     }else if(isHls){
       const insecure=location.protocol==='https:'&&/^http:\/\//i.test(currentRadioSource);
       $('radio-status').textContent=insecure?'HTTPS REQUIRED · THIS STREAM USES HTTP':'HLS PLAYER UNAVAILABLE';
-      notify(insecure?'This station uses an HTTP link, which secure pages block. Use an HTTPS stream.':'The HLS playback component did not load. Refresh the app and try again.');
+      radioRecovery.fail();
     }else{
       audio.src=src;
       try{await startRadioAudio();onRadioStarted();}catch(error){onRadioFailed(error);}
     }
-    renderPresets();
+    if(generation===radioPlaybackGeneration)renderPresets();
   }
-  function toggleRadio(){if(window.retroRadioMechanism?.pending){window.retroRadioMechanism.cancel();radioRecovery.stop();return;}if(!audio.src){const rows=currentRows('radio'),selected=radioCurrent(),station=rows.find(item=>selected&&stationKey(item)===stationKey(selected))||rows[0];if(station)playRadio(station);else notify('Choose a radio preset first.');return;}if(audio.paused){startRadioAudio().then(()=>{$('equalizer').classList.add('playing');$('radio-art').classList.add('playing');$('radio-play').textContent='Ⅱ';}).catch(error=>{console.error('Radio resume failed:',currentRadioSource,error);if(location.protocol==='https:'&&/^http:\/\//i.test(currentRadioSource)){ $('radio-status').textContent='HTTPS REQUIRED · THIS STREAM USES HTTP';notify('This station uses an HTTP link, which secure pages block. Use an HTTPS stream.');}else notify('This stream could not be resumed. Try another station.');});}else audio.pause();}
-  function stopRadio(){window.retroRadioMechanism?.cancel();radioPlaybackGeneration++;radioAutoplayBlocked=false;radioRecovery.stop();stopSoundRays();if(radioHls){radioHls.destroy();radioHls=null;}audio.pause();audio.removeAttribute('src');audio.load();currentRadioSource='';$('radio-art').classList.remove('playing');$('radio-play').textContent='▶';$('radio-play').title='Play';$('radio-play').setAttribute('aria-label','Play');$('equalizer').classList.remove('playing');$('radio-status').textContent='STOPPED';}
-  function stepRadio(direction){const rows=currentRows('radio');if(!rows.length)return;const current=radioCurrent();let index=rows.findIndex(s=>stationKey(s)===stationKey(current||{}));index=(index+direction+rows.length)%rows.length;playRadio(rows[index]);}
+  function toggleRadio(){if(continuousRetryTimers.radio){stopRadio();return;}if(radioAutoplayBlocked&&$('radio-screen').classList.contains('active')){retryBlockedRadio();return;}if(radioRecovery.connecting&&audio.paused){stopRadio();return;}if(window.retroRadioMechanism?.pending){window.retroRadioMechanism.cancel();radioRecovery.stop();return;}if(!audio.src){const rows=currentRows('radio'),selected=radioCurrent(),station=rows.find(item=>selected&&stationKey(item)===stationKey(selected))||rows[0];if(station)playRadio(station);else notify('Choose a radio preset first.');return;}if(audio.paused){startRadioAudio().then(()=>{$('equalizer').classList.add('playing');$('radio-art').classList.add('playing');$('radio-play').textContent='Ⅱ';}).catch(error=>{console.error('Radio resume failed:',currentRadioSource,error);if(location.protocol==='https:'&&/^http:\/\//i.test(currentRadioSource)){ $('radio-status').textContent='HTTPS REQUIRED · THIS STREAM USES HTTP';notify('This station uses an HTTP link, which secure pages block. Use an HTTPS stream.');}else notify('This stream could not be resumed. Try another station.');});}else{radioRecovery.stop();audio.pause();}}
+  function stopRadio(){cancelContinuousRetry('radio');$('radio-art').dataset.playbackBlocked='false';setRecoveryStatus('radio','');window.retroRadioMechanism?.cancel();radioPlaybackGeneration++;radioAutoplayBlocked=false;radioRecovery.stop();stopSoundRays();if(radioHls){radioHls.destroy();radioHls=null;}audio.pause();audio.removeAttribute('src');audio.load();if(remoteMedia===audio)syncRemoteMedia();currentRadioSource='';$('radio-art').classList.remove('playing');$('radio-play').textContent='▶';$('radio-play').title='Play';$('radio-play').setAttribute('aria-label','Play');$('equalizer').classList.remove('playing');$('radio-status').textContent='STOPPED';}
   function togglePreset(kind,station){
-    const presets=kind==='radio'?radioPresets:tvPresets,key=kind==='radio'?stationKey(station):station.url;
-    if(!presets[key]&&Object.keys(presets).length>=PRESET_LIMIT){notify(`Maximum ${PRESET_LIMIT} ${kind==='radio'?'radio':'TV'} presets. Remove one before adding another.`);return;}
-
-    if(kind==='radio'){const key=stationKey(station),hidden=new Set(loadStore(RADIO_HIDDEN_STORE,[])),isShared=radios.some(item=>stationKey(item)===key);if(radioPresets[key]){delete radioPresets[key];if(isShared)hidden.add(key);}else{radioPresets[key]=station;hidden.delete(key);}saveStore(RADIO_HIDDEN_STORE,[...hidden]);saveStore(RADIO_STORE,radioPresets);drawRadio();if(!audio.paused){stopSoundRays();startSoundRays();}renderPresets();renderExplore();}
-    else{const key=station.url,hidden=new Set(loadStore(TV_HIDDEN_STORE,[])),isShared=tvs.some(item=>item.url===key);if(tvPresets[key]){delete tvPresets[key];if(isShared)hidden.add(key);}else{tvPresets[key]=station;hidden.delete(key);}saveStore(TV_HIDDEN_STORE,[...hidden]);saveStore(TV_STORE,tvPresets);saveStore(TV_ORDER_STORE,Object.keys(tvPresets));drawTV();renderPresets();renderTVRail();renderRemotePresets();renderExplore();}
+    const isRadio=kind==='radio',presets=isRadio?radioPresets:tvPresets,key=presetKey(kind,station);
+    if(!key)return;
+    const removing=Object.hasOwn(presets,key);
+    if(!removing&&Object.keys(presets).length>=PRESET_LIMIT){notify(`Maximum ${PRESET_LIMIT} ${isRadio?'radio':'TV'} presets. Remove one before adding another.`);return;}
+    const next={...presets,[key]:station};
+    if(removing)delete next[key];
+    if(!saveStore(isRadio?RADIO_STORE:TV_STORE,next))return;
+    const hiddenStore=isRadio?RADIO_HIDDEN_STORE:TV_HIDDEN_STORE;
+    const excluded=loadStore(hiddenStore,[]),hidden=new Set(Array.isArray(excluded)?excluded:[]);
+    if(removing&&(isRadio?radios:tvs).some(item=>presetKey(kind,item)===key))hidden.add(key);
+    else hidden.delete(key);
+    saveStore(hiddenStore,[...hidden]);
+    if(isRadio){
+      radioPresets=next;drawRadio();renderRadioShortcuts();
+      if(!audio.paused){stopSoundRays();startSoundRays();}
+    }else{
+      tvPresets=next;saveStore(TV_ORDER_STORE,Object.keys(next));drawTV();
+      if(!tvCurrent())renderTVRail();
+    }
+    renderPresets();renderExplore();
   }
   function renderRemotePresets(){
     const target=$('remote-presets');if(!target)return;const allRows=currentRows('tv'),rows=allRows.slice(0,PRESET_LIMIT),picker=$('remote-channel-select');
     picker.innerHTML='<option value="">Choose a channel</option>'+allRows.map(station=>`<option value="${safe(station.url)}">${safe(station.name||'TV channel')}</option>`).join('');picker.value=tvCurrent()?.url||'';
     target.innerHTML=rows.map((station,index)=>`<button class="remote-key remote-preset-key ${tvCurrent()?.url===station.url?'active':''}" type="button" data-remote-preset="${index}" aria-pressed="${tvCurrent()?.url===station.url}" aria-label="Play ${safe(station.name||'TV channel')}" title="${safe(station.name||'TV channel')}">${String(index+1).padStart(2,'0')}</button>`).join('')||'<span class="empty-note">Save TV channels as presets to use quick select.</span>';
-    target.querySelectorAll('[data-remote-preset]').forEach(button=>button.addEventListener('click',()=>{const station=rows[Number(button.dataset.remotePreset)];if(station)playTV(station);}));
+    target.querySelectorAll('[data-remote-preset]').forEach(button=>button.addEventListener('click',()=>{const station=rows[Number(button.dataset.remotePreset)];if(station)playTV(station,false,Number(button.dataset.tuneDirection)||1);}));
   }
   let tvRailBrowsing=false,tvRailSettleTimer=0;
   function renderTVRail(){
@@ -667,25 +686,21 @@
     $('tv-title').textContent=cleanTVTitle(station.name);$('tv-subtitle').textContent=[station.country,station.group].filter(Boolean).join(' · ')||'Live television';$('fullscreen-channel-name').textContent=cleanTVTitle(station.name);$('fullscreen-channel-country').textContent=[station.country,station.group].filter(Boolean).join(' · ')||'TV';
     const saved=Boolean(tvPresets[station.url]);$('tv-star').textContent=saved?'★':'☆';$('tv-star').classList.toggle('saved',saved);$('remote-favorite').classList.toggle('saved',saved);$('tv-placeholder').hidden=Boolean(video.currentSrc||video.src);updateTVTitleStrip();renderTVRail();
   }
-  function stopTV(){tvPlaybackGeneration++;tvRecovery.stop();tvAutoRotation.leave();clearYouTube();if(hls){hls.destroy();hls=null;}video.pause();video.removeAttribute('src');video.load();$('tv-toggle').textContent='▶';drawTV();}
+  function stopTV(){cancelContinuousRetry('tv');setRecoveryStatus('tv','');tvPlaybackGeneration++;tvRecovery.stop();tvAutoRotation.leave();clearYouTube();if(hls){hls.destroy();hls=null;}video.pause();video.removeAttribute('src');video.load();$('tv-toggle').textContent='▶';drawTV();}
   let tvPlaylistIndex=0;
-  async function playTV(station,automatic=false){
-    if(blockedStream(station)){
-      const next=secureAlternative('tv',station);
-      notify('HTTP stream blocked on HTTPS; skipping.');
-      if(next)return playTV(next,automatic);
-      stopTV();return;
-    }
+  async function playTV(station,automatic=false,direction=1){
+    cancelContinuousRetry('tv');
     const generation=++tvPlaybackGeneration;
     tvRecovery.stop();
     clearYouTube();tvPlaylistIndex=0;
     if(!station)return;const rows=currentRows('tv');tvIndex=tvs.findIndex(s=>s.url===station.url);if(tvIndex<0){tvs.unshift(station);tvIndex=0;}if(hls){hls.destroy();hls=null;}video.pause();video.removeAttribute('src');video.load();
     if(audio.src||radioHls)stopRadio();
     updateTVNumbers();
-    tvRecovery.begin(automatic);
+    tvRecovery.begin(automatic,direction);
+    if(!station.url||blockedStream(station)){tvRecovery.fail();return;}
     const url=station.url||'';drawTV();$('tv-placeholder').hidden=true;rememberPlayed('tv',station);
-    if(/\.m3u8($|\?)/i.test(url)&&window.Hls&&Hls.isSupported()){hls=new Hls({enableWorker:true,maxBufferLength:15});hls.loadSource(url);hls.attachMedia(video);hls.on(Hls.Events.MANIFEST_PARSED,()=>{if(generation!==tvPlaybackGeneration)return;video.play().then(()=>{if(generation!==tvPlaybackGeneration)return;$('tv-toggle').textContent='Ⅱ';}).catch(error=>{if(generation!==tvPlaybackGeneration)return;tvRecovery.reject(error);notify('Press play on the video to start.');});});hls.on(Hls.Events.ERROR,(_e,data)=>{if(generation===tvPlaybackGeneration&&data.fatal)notify('This channel is not available right now.');});}
-    else{video.src=url;try{await video.play();if(generation!==tvPlaybackGeneration)return;$('tv-toggle').textContent='Ⅱ';}catch(error){if(generation!==tvPlaybackGeneration)return;tvRecovery.reject(error);notify('Press play on the video to start this channel.');}}
+    if(/\.m3u8($|\?)/i.test(url)&&window.Hls&&Hls.isSupported()){hls=new Hls({enableWorker:true,maxBufferLength:15});hls.loadSource(url);hls.attachMedia(video);hls.on(Hls.Events.MANIFEST_PARSED,()=>{if(generation!==tvPlaybackGeneration)return;video.play().then(()=>{if(generation!==tvPlaybackGeneration)return;$('tv-toggle').textContent='Ⅱ';}).catch(error=>{if(generation!==tvPlaybackGeneration)return;tvRecovery.reject(error);if(error?.name==='NotAllowedError')notify('Press play on the video to start.');});});hls.on(Hls.Events.ERROR,(_e,data)=>{if(generation===tvPlaybackGeneration&&data.fatal)tvRecovery.fail();});}
+    else{video.src=url;try{await video.play();if(generation!==tvPlaybackGeneration)return;$('tv-toggle').textContent='Ⅱ';}catch(error){if(generation!==tvPlaybackGeneration)return;tvRecovery.reject(error);if(error?.name==='NotAllowedError')notify('Press play on the video to start this channel.');}}
     if(generation!==tvPlaybackGeneration)return;
     drawTV();renderPresets();
   }
@@ -706,7 +721,34 @@
   function advanceTVPlaylist(){const station=tvCurrent(),playlist=station?.playlist;if(!Array.isArray(playlist)||playlist.length<2)return;const next=tvPlaylistIndex+1;if(next>=playlist.length&&!station.playlistLoop)return;tvPlaylistIndex=next%playlist.length;playPlaylistItem(playlist[tvPlaylistIndex]);}
   video.addEventListener('ended',advanceTVPlaylist);
   video.addEventListener('volumechange',()=>{if(youtubePlayer?.setVolume){youtubePlayer.setVolume(Math.round(video.volume*100));if(video.muted)youtubePlayer.mute();else youtubePlayer.unMute();}});
-  function stepTV(direction){const rows=currentRows('tv');if(!rows.length)return;let i=rows.findIndex(s=>s.url===tvCurrent()?.url);if(i<0)i=direction>0?-1:0;i=(i+direction+rows.length)%rows.length;playTV(rows[i]);}
+  function stepTV(direction){
+    const rows=recoveryRows('tv');
+    if(!rows.length)return;
+    let index=rows.findIndex(station=>station.url===tvCurrent()?.url);
+    if(index<0)index=direction>0?-1:0;
+    index=(index+direction+rows.length)%rows.length;
+    return playTV(rows[index],false,direction);
+  }
+  function setTVPlayback(action='toggle'){
+    if(action!=='play'&&continuousRetryTimers.tv){stopTV();return;}
+    if(youtubePlayer?.getPlayerState){
+      if(action==='pause'||(action==='toggle'&&youtubePlayer.getPlayerState()===1))youtubePlayer.pauseVideo();
+      else youtubePlayer.playVideo();
+      return;
+    }
+    if(action==='pause'||(action==='toggle'&&(!video.paused||tvRecovery.connecting))){
+      if(tvRecovery.connecting&&video.paused)stopTV();
+      else{tvRecovery.stop();video.pause();}
+      return;
+    }
+    if(!video.paused||youtubeHost)return;
+    if(!video.src&&!video.currentSrc&&!hls){
+      const station=tvCurrent()||currentRows('tv')[0];
+      if(station)playTV(station);
+      return;
+    }
+    video.play().catch(()=>notify('Press play on the video.'));
+  }
   let tvFullscreenActive=false,tvNativeFullscreen=false,tvAutoFullscreen=false;
   const tvAutoRotation=createTVAutoFullscreen({media:video,isTVVisible:()=>$('tv-screen').classList.contains('active'),isFullscreen:()=>tvFullscreenActive,isAutomatic:()=>tvAutoFullscreen,enter:automatic=>toggleTVFullscreen(automatic),exit:reason=>exitTVFullscreen(reason)});
   const tvFullscreenButton=document.querySelector('[data-remote="fullscreen"]');
@@ -783,34 +825,40 @@
   window.visualViewport?.addEventListener('resize',syncTVFullscreenLayout);
   window.addEventListener('orientationchange',syncTVFullscreenLayout);
 
-  function updatePresetCounts(){$('preset-radio-count').textContent=String(Object.keys(radioPresets).length);$('preset-tv-count').textContent=String(Object.keys(tvPresets).length);}
+  function updatePresetCounts(){
+    $('preset-radio-count').textContent=`${Object.keys(radioPresets).length}/${PRESET_LIMIT}`;
+    $('preset-tv-count').textContent=`${Object.keys(tvPresets).length}/${PRESET_LIMIT}`;
+    $('preset-recent-count').textContent=`${recentHistory.length}/${RECENT_LIMIT}`;
+  }
   function reorderPreset(kind,from,to){
     const presets=kind==='tv'?tvPresets:radioPresets,keys=Object.keys(presets),a=keys.indexOf(from),b=keys.indexOf(to);
     if(a<0||b<0||a===b)return;
     keys.splice(a,1);keys.splice(b,0,from);
     const reordered=Object.fromEntries(keys.map(key=>[key,presets[key]]));
-    if(kind==='tv'){tvPresets=reordered;saveStore(TV_STORE,reordered);saveStore(TV_ORDER_STORE,keys);renderTVRail();renderRemotePresets();}
-    else{radioPresets=reordered;saveStore(RADIO_STORE,reordered);renderRadioShortcuts();}
+    if(!saveStore(kind==='tv'?TV_STORE:RADIO_STORE,reordered)){renderPresets();return;}
+    if(kind==='tv'){tvPresets=reordered;saveStore(TV_ORDER_STORE,keys);renderTVRail();}
+    else{radioPresets=reordered;renderRadioShortcuts();}
     renderPresets();renderExplore();
   }
+  let cancelPresetDrag;
   function enablePresetDragging(target,rows){
-    const kind=presetMode,key=station=>kind==='tv'?station.url:stationKey(station);
+    const kind=presetMode,key=station=>presetKey(kind,station);
     target.querySelectorAll('.preset-drag-handle').forEach(handle=>{
       const card=handle.closest('[data-preset-index]');let drag=null,scrollFrame=0,lastScrollTime=0;
       function updateDropTarget(){
         const cards=[...target.querySelectorAll('[data-preset-index]')];
         // Use layout slots, not moving animation boxes, for insertion decisions.
         const grid=target.getBoundingClientRect();
-        const slots=cards.filter(item=>item!==card).map(item=>({item,left:grid.left+item.offsetLeft-target.offsetLeft,top:grid.top+item.offsetTop-target.offsetTop-target.scrollTop,width:item.offsetWidth,height:item.offsetHeight}));
+        const slots=cards.filter(item=>item!==card).map(item=>({item,left:grid.left+item.offsetLeft-target.scrollLeft,top:grid.top+item.offsetTop-target.scrollTop,width:item.offsetWidth,height:item.offsetHeight}));
         let over=null;
         const topEdge=Math.max(0,grid.top)+Math.min(90,target.clientHeight*.25),bottomEdge=Math.min(innerHeight,grid.bottom)-Math.min(90,target.clientHeight*.25);
-        const visible=slots.filter(slot=>slot.top+slot.height>0&&slot.top<innerHeight);
+        const visible=slots.filter(slot=>slot.top+slot.height>Math.max(0,grid.top)&&slot.top<Math.min(innerHeight,grid.bottom));
         if(drag.y<topEdge&&visible.length)over=visible[0].item;
         else if(drag.y>bottomEdge&&visible.length)over=visible[visible.length-1].item;
         else if(slots.length){
           slots.sort((a,b)=>Math.hypot(a.left+a.width/2-drag.x,a.top+a.height/2-drag.y)-Math.hypot(b.left+b.width/2-drag.x,b.top+b.height/2-drag.y));
           over=slots[0].item;
-          const own={left:grid.left+card.offsetLeft-target.offsetLeft,top:grid.top+card.offsetTop-target.offsetTop-target.scrollTop};
+          const own={left:grid.left+card.offsetLeft-target.scrollLeft,top:grid.top+card.offsetTop-target.scrollTop};
           if(drag.x>=own.left&&drag.x<=own.left+card.offsetWidth&&drag.y>=own.top&&drag.y<=own.top+card.offsetHeight)return;
         }
         if(!over||over===card)return;
@@ -818,7 +866,6 @@
         if(from===to||(drag.y<topEdge&&to>from)||(drag.y>bottomEdge&&to<from))return;
         const before=new Map(cards.map(item=>[item,item.getBoundingClientRect()]));
         target.insertBefore(card,from<to?over.nextSibling:over);
-        drag.to=[...target.querySelectorAll('[data-preset-index]')].indexOf(card);
         if(!matchMedia('(prefers-reduced-motion: reduce)').matches)for(const item of cards){
           const old=before.get(item),now=item.getBoundingClientRect();
           if(old.left!==now.left||old.top!==now.top){item.getAnimations().forEach(animation=>animation.cancel());item.animate([{transform:`translate(${old.left-now.left}px,${old.top-now.top}px)`},{transform:'translate(0,0)'}],{duration:180,easing:'ease-out'});}
@@ -847,38 +894,89 @@
         event.preventDefault();event.stopPropagation();drag.x=event.clientX;drag.y=event.clientY;
         if(!drag.moved&&Math.hypot(drag.x-drag.startX,drag.y-drag.startY)>7){
           drag.moved=true;card.classList.add('preset-dragging');card.style.pointerEvents='none';
-          const rect=card.getBoundingClientRect();drag.ghost=card.cloneNode(true);drag.ghost.removeAttribute('data-preset-index');drag.ghost.className='preset-drag-preview';
+          const rect=card.getBoundingClientRect();drag.ghost=card.cloneNode(true);drag.ghost.removeAttribute('data-preset-index');drag.ghost.className='preset-card preset-drag-preview';
+          drag.ghost.inert=true;drag.ghost.setAttribute('aria-hidden','true');
           Object.assign(drag.ghost.style,{position:'fixed',width:rect.width+'px',height:rect.height+'px',pointerEvents:'none',zIndex:'20000'});document.body.append(drag.ghost);
           lastScrollTime=0;scrollFrame=requestAnimationFrame(autoScroll);
         }
         if(drag.ghost){drag.ghost.style.left=(drag.x-drag.offsetX)+'px';drag.ghost.style.top=(drag.y-drag.offsetY)+'px';}
         if(drag.moved)updateDropTarget();
       }
-      function finish(event){
-        if(!drag||event.pointerId!==drag.id)return;
-        event.stopPropagation();const moved=drag.moved,to=[...target.querySelectorAll('[data-preset-index]')].indexOf(card);
+      function cleanUp(){
         drag.ghost?.remove();drag=null;cancelAnimationFrame(scrollFrame);lastScrollTime=0;
         window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',finish);window.removeEventListener('pointercancel',finish);
+        window.removeEventListener('blur',abandon);cancelPresetDrag=null;
         card.classList.remove('preset-dragging');card.style.removeProperty('pointer-events');
-        if(moved){target.dataset.suppressTapUntil=String(performance.now()+500);if(event.type==='pointerup'&&to!==Number(card.dataset.presetIndex))reorderPreset(kind,key(rows[Number(card.dataset.presetIndex)]),key(rows[to]));else renderPresets();}
+      }
+      function abandon(){if(drag?.moved)renderPresets();else if(drag)cleanUp();}
+      function finish(event){
+        if(!drag||event.pointerId!==drag.id)return;
+        event.stopPropagation();const moved=drag.moved,from=Number(card.dataset.presetIndex),to=[...target.querySelectorAll('[data-preset-index]')].indexOf(card);
+        cleanUp();
+        if(moved){target.dataset.suppressTapUntil=String(performance.now()+500);if(event.type==='pointerup'&&rows[to]&&to!==from)reorderPreset(kind,key(rows[from]),key(rows[to]));else renderPresets();}
       }
       handle.addEventListener('pointerdown',event=>{
-        if(event.button!==0||event.target.closest('[data-preset-star]'))return;
+        if(event.button!==0||cancelPresetDrag||event.target.closest('[data-preset-star]'))return;
         event.stopPropagation();const rect=card.getBoundingClientRect();
         drag={id:event.pointerId,x:event.clientX,y:event.clientY,startX:event.clientX,startY:event.clientY,offsetX:event.clientX-rect.left,offsetY:event.clientY-rect.top,moved:false};
+        cancelPresetDrag=cleanUp;window.addEventListener('blur',abandon);
         window.addEventListener('pointermove',move,{passive:false});window.addEventListener('pointerup',finish);window.addEventListener('pointercancel',finish);
       });
       handle.addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;event.preventDefault();event.stopPropagation();const from=Number(card.dataset.presetIndex),to=from+(['ArrowLeft','ArrowUp'].includes(event.key)?-1:1);if(rows[to]){reorderPreset(kind,key(rows[from]),key(rows[to]));target.querySelector(`[data-preset-index="${to}"] .preset-drag-handle`)?.focus();}});
     });
   }
+  function playFromCollection(kind,station){
+    if(isDeadHidden(kind,station)){notify('This channel is hidden. Restore hidden channels in Settings to tune it.');return;}
+    setScreen(kind==='tv'?'tv-screen':'radio-screen',false,false);
+    if(kind==='tv')playTV(station);else playRadio(station);
+  }
+  function renderRecentCards(target){
+    target.innerHTML=recentHistory.map((entry,index)=>`<button class="preset-card recent-history-card" type="button" data-recent-index="${index}"><span class="channel-number">${entry.kind==='tv'?'TV':'RADIO'} · ${new Date(entry.playedAt||Date.now()).toLocaleDateString()}</span><span class="preset-logo">${entry.logo?`<img loading="lazy" decoding="async" src="${safe(entry.logo)}" alt="">`:safe(initialsFor(entry.name))}</span><b>${safe(entry.name)}</b><small>${safe(entry.country||'Recently played')}</small></button>`).join('')||'<div class="empty-note">Your radio and TV history will appear here.</div>';
+    target.querySelectorAll('[data-recent-index]').forEach(button=>{
+      const entry=recentHistory[Number(button.dataset.recentIndex)];
+      if(!entry)return;
+      const library=entry.kind==='tv'?tvs:radios;
+      const station=[...listFor(entry.kind),...library].find(row=>presetKey(entry.kind,row)===entry.key||row.url===entry.url)
+        ||{...entry,stationuuid:entry.kind==='radio'?entry.key:undefined};
+      if(entry.kind==='radio')decorateRadioCard(button,station);
+      button.addEventListener('click',()=>playFromCollection(entry.kind,station));
+    });
+  }
   function renderPresets(){
-    updatePresetCounts();const target=$('preset-grid');$('clear-recent').hidden=presetMode!=='recent';$('preset-footnote').firstChild.textContent=presetMode==='recent'?'History is stored only on this device. ': 'Drag ⠿ to reorder · Double-tap to play · ★ to remove ';if(presetMode==='recent'){ $('preset-priority-control').hidden=true;$('preset-selection-label').textContent='RECENTLY PLAYED';target.classList.add('recent-history-grid');target.innerHTML=recentHistory.map((entry,index)=>`<button class="preset-card recent-history-card" type="button" data-recent-index="${index}"><span class="channel-number">${entry.kind==='tv'?'TV':'RADIO'} · ${new Date(entry.playedAt||Date.now()).toLocaleDateString()}</span><span class="preset-logo">${entry.logo?`<img loading="lazy" decoding="async" src="${safe(entry.logo)}" alt="">`:entry.kind==='tv'?'TV':'♫'}</span><b>${safe(entry.name)}</b><small>${safe(entry.country||'Recently played')}</small></button>`).join('')||'<div class="empty-note">Your radio and TV history will appear here.</div>';target.querySelectorAll('[data-recent-index]').forEach(button=>button.addEventListener('click',()=>{const entry=recentHistory[Number(button.dataset.recentIndex)];if(!entry)return;const list=entry.kind==='tv'?tvs:radios,item=list.find(row=>(entry.kind==='tv'?row.url:stationKey(row))===entry.key)||Object.values(entry.kind==='tv'?tvPresets:radioPresets).find(row=>(entry.kind==='tv'?row.url:stationKey(row))===entry.key);if(item){setScreen(entry.kind==='tv'?'tv-screen':'radio-screen');entry.kind==='tv'?playTV(item):playRadio(item);}}));return;}target.classList.remove('recent-history-grid');const rows=currentRows(presetMode);$('preset-priority-control').hidden=true;
-    if(presetMode==='tv'&&(!rows.some(item=>item.url===selectedTVPresetKey)))selectedTVPresetKey=tvCurrent()?.url&&rows.some(item=>item.url===tvCurrent().url)?tvCurrent().url:rows[0]?.url||null;
-    const selected=rows.find(item=>item.url===selectedTVPresetKey);$('preset-selection-label').textContent=selected?`SELECTED · ${selected.name||'TV CHANNEL'}`:'SELECT A TV CHANNEL';
-    target.innerHTML=rows.map((station,index)=>{const title=station.name||'Untitled station',logo=stationLogo(station);return `<article class="preset-card ${presetMode==='tv'&&tvCurrent()?.url===station.url||presetMode==='radio'&&stationKey(radioCurrent()||{})===stationKey(station)?'active':''} ${presetMode==='tv'&&selectedTVPresetKey===station.url?'priority-selected':''}" tabindex="0" role="button" data-preset-index="${index}"><span class="channel-number">CH ${String(index+1).padStart(2,'0')}</span><button type="button" class="preset-drag-handle" aria-label="Drag to change priority; use arrow keys with keyboard" title="Drag to change priority">⠿</button><button class="preset-star" type="button" data-preset-star="${safe(presetMode==='tv'?station.url:stationKey(station))}" aria-label="Remove preset">★</button><span class="preset-logo">${logo?`<img loading="lazy" decoding="async" src="${safe(logo)}" alt="">`:safe(title.slice(0,11))}</span><b>${safe(title)}</b><small>${safe(station.country||station.group||'Live')}</small></article>`;}).join('')||'<div class="empty-note">No presets in this section yet. Save stations from Explore.</div>';
+    cancelPresetDrag?.();
+    updatePresetCounts();
+    const target=$('preset-grid'),kind=presetMode,recent=kind==='recent';
+    $('clear-recent').hidden=!recent;
+    $('preset-footnote').firstChild.textContent=recent?'Last 30 channels on this device. ':'Double-tap to play · Drag the dots to move · Tap ★ to remove. ';
+    $('preset-priority-control').hidden=true;
+    target.classList.toggle('recent-history-grid',recent);
+    if(target.dataset.renderedPresetMode!==kind){
+      target.scrollTop=0;
+      target.dataset.renderedPresetMode=kind;
+    }
+    if(recent){
+      $('preset-selection-label').textContent='RECENTLY PLAYED';
+      renderRecentCards(target);
+      return;
+    }
+    const rows=listFor(kind),activeKey=presetKey(kind,kind==='tv'?tvCurrent():radioCurrent());
+    if(kind==='tv'&&!rows.some(item=>item.url===selectedTVPresetKey))selectedTVPresetKey=rows.some(item=>item.url===activeKey)?activeKey:rows[0]?.url||null;
+    const selected=kind==='tv'?rows.find(item=>item.url===selectedTVPresetKey):rows.find(item=>stationKey(item)===activeKey);
+    $('preset-selection-label').textContent=selected?`SELECTED · ${selected.name}`:kind==='tv'?'SELECT A TV CHANNEL':'SELECT A RADIO STATION';
+    target.innerHTML=rows.map((station,index)=>{
+      const title=station.name||'Untitled station',logo=stationLogo(station),key=presetKey(kind,station);
+      const active=activeKey===key?'active':'',selected=kind==='tv'&&selectedTVPresetKey===key?'priority-selected':'';
+      const detail=isDeadHidden(kind,station)?'Hidden from tuner':station.country||station.group||'Live';
+      return `<article class="preset-card ${active} ${selected}" tabindex="0" role="button" data-preset-index="${index}"><span class="channel-number">CH ${String(index+1).padStart(2,'0')}</span><button type="button" class="preset-drag-handle" aria-label="Move ${safe(title)} with arrow keys or drag" title="Drag to reorder">⠿</button><button class="preset-star" type="button" data-preset-star="${safe(key)}" aria-label="Remove ${safe(title)} from presets">★</button><span class="preset-logo">${logo?`<img loading="lazy" decoding="async" src="${safe(logo)}" alt="">`:safe(initialsFor(title))}</span><b>${safe(title)}</b><small>${safe(detail)}</small></article>`;
+    }).join('')||'<div class="empty-note">No presets in this section yet. Save channels from Explore.</div>';
     target.querySelectorAll('[data-preset-index]').forEach(card=>{
-      const station=rows[Number(card.dataset.presetIndex)],kind=presetMode;let lastTap=0;
-      const play=()=>{if(kind==='tv')selectedTVPresetKey=station.url;setScreen(kind==='tv'?'tv-screen':'radio-screen');kind==='tv'?playTV(station):playRadio(station);};
+      const station=rows[Number(card.dataset.presetIndex)];
+      if(kind==='radio')decorateRadioCard(card,station);
+      let lastTap=0;
+      const play=()=>{
+        if(kind==='tv')selectedTVPresetKey=station.url;
+        playFromCollection(kind,station);
+      };
       card.addEventListener('click',event=>{
         if(performance.now()<Number(target.dataset.suppressTapUntil||0)||event.target.closest('[data-preset-star],.preset-drag-handle'))return;
         const now=performance.now();
@@ -887,10 +985,17 @@
         target.querySelectorAll('.preset-tap-selected').forEach(item=>item.classList.remove('preset-tap-selected'));
         card.classList.add('preset-tap-selected');
       });
-      card.addEventListener('keydown',event=>{if(event.key==='Enter'&&event.target===card){event.preventDefault();play();}});
+      card.addEventListener('keydown',event=>{
+        if((event.key==='Enter'||event.key===' ')&&event.target===card){event.preventDefault();event.stopPropagation();play();}
+      });
+      card.querySelector('[data-preset-star]').addEventListener('click',event=>{
+        event.stopPropagation();
+        togglePreset(kind,station);
+        const cards=target.querySelectorAll('[data-preset-index]');
+        (cards[Math.min(Number(card.dataset.presetIndex),cards.length-1)]?.querySelector('[data-preset-star]')||document.querySelector('[data-preset-mode].selected'))?.focus({preventScroll:true});
+      });
     });
     enablePresetDragging(target,rows);
-    target.querySelectorAll('[data-preset-star]').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();const station=rows.find(s=>(presetMode==='tv'?s.url:stationKey(s))===button.dataset.presetStar);if(station)togglePreset(presetMode,station);}));
   }
   function stationGenre(station,kind){
     const identity=String(station.name||'')+' '+String(station.channelName||'')+' '+String(station.group||'');
@@ -1014,13 +1119,30 @@
     const visibleRows=rows;
     const groups=new Map();for(const row of visibleRows){const heading=groupKey?row[groupKey]:'All channels';if(!groups.has(heading))groups.set(heading,[]);groups.get(heading).push(row);}
     const target=$('explore-results');let html='';
-    for(const [heading,items] of groups){html+=`<h2 class="result-group-title">${safe(heading)} <small>${items.length}</small></h2>`;html+=items.map(s=>{const logo=stationLogo(s),key=keyOf(s),saved=Boolean(store[key]),quality=browserKind==='tv'?(s.quality||'LIVE'):[s.codec,s.bitrate?`${s.bitrate} kbps`:null].filter(Boolean).join(' · ')||'LIVE';return `<button class="result-row" type="button" data-result-kind="${browserKind}" data-result-key="${safe(key)}">${logo?`<img loading="lazy" decoding="async" src="${safe(logo)}" alt="">`:`<span class="result-icon">${browserKind==='tv'?'▣':'♫'}</span>`}<span class="result-copy"><b>${safe(s.name||'Untitled channel')}</b><small>${safe(s._genre)} · ${safe(s._country)}</small></span><small class="result-quality">${safe(quality)}</small><b class="result-star">${saved?'★':'☆'}</b></button>`;}).join('');}
+    for(const [heading,items] of groups){
+      html+=`<h2 class="result-group-title">${safe(heading)} <small>${items.length}</small></h2>`;
+      html+=items.map(station=>{
+        const logo=stationLogo(station),key=keyOf(station),saved=Object.hasOwn(store,key),title=station.name||'Untitled channel';
+        const quality=browserKind==='tv'?(station.quality||'LIVE'):[station.codec,station.bitrate?`${station.bitrate} kbps`:null].filter(Boolean).join(' · ')||'LIVE';
+        const image=logo?`<img loading="lazy" decoding="async" src="${safe(logo)}" alt="">`:`<span class="result-icon">${safe(initialsFor(title))}</span>`;
+        return `<div class="result-row" data-result-kind="${browserKind}" data-result-key="${safe(key)}"><button class="result-play" type="button">${image}<span class="result-copy"><b>${safe(title)}</b><small>${safe(station._genre)} · ${safe(station._country)}</small></span><small class="result-quality">${safe(quality)}</small></button><button type="button" class="result-star" aria-label="${saved?'Remove':'Save'} ${safe(title)} ${saved?'from':'to'} presets" aria-pressed="${saved}">${saved?'★':'☆'}</button></div>`;
+      }).join('');
+    }
     if(!html&&browserSource==='online')html=`<div class="empty-note">${onlineSearchDone?'No channels match. Try another name, country, or genre.':'Choose filters, then search the online catalog to discover more channels.'}</div>`;
     if(!html&&browserSource==='library')html='<div class="empty-note">No channels match those filters.</div>';
     if(browserSource==='online'&&onlineHasMore&&browserKind==='radio')html+='<button class="load-more-online" id="load-more-online" type="button">LOAD MORE CHANNELS</button>';
     target.innerHTML=html;
     $('browser-summary').textContent=`${rows.length} ${browserKind==='tv'?'TV streams':'radio stations'} · sorted by ${sortBy==='name'?'channel name':sortBy}`;
-    target.querySelectorAll('[data-result-kind]').forEach(button=>button.addEventListener('click',()=>{const kind=button.dataset.resultKind,key=button.dataset.resultKey,sourceList=kind==='tv'?tvs:radios,station=sourceList.find(s=>(kind==='tv'?s.url:stationKey(s))===key)||Object.values(kind==='tv'?tvPresets:radioPresets).find(s=>(kind==='tv'?s.url:stationKey(s))===key)||onlineRows.find(s=>(kind==='tv'?s.url:stationKey(s))===key);if(!station)return;if(kind==='tv'){if(!tvPresets[station.url])togglePreset('tv',station);setScreen('tv-screen');playTV(station);}else{if(!radioPresets[stationKey(station)])togglePreset('radio',station);setScreen('radio-screen');playRadio(station);}}));
+    const visibleStations=new Map(rows.map(station=>[keyOf(station),station]));
+    target.querySelectorAll('[data-result-kind]').forEach(row=>{
+      const kind=row.dataset.resultKind,key=row.dataset.resultKey,station=visibleStations.get(key);
+      if(kind==='radio')decorateRadioCard(row,station);
+      row.querySelector('.result-play').addEventListener('click',()=>playFromCollection(kind,station));
+      row.querySelector('.result-star').addEventListener('click',()=>{
+        togglePreset(kind,station);
+        [...target.querySelectorAll('[data-result-key]')].find(item=>item.dataset.resultKey===key)?.querySelector('.result-star').focus({preventScroll:true});
+      });
+    });
     $('load-more-online')?.addEventListener('click',()=>{if(browserKind==='radio')discoverOnline(true);else{onlineVisibleLimit+=100;renderExplore();}});
   }
 
@@ -1031,6 +1153,7 @@
   document.querySelectorAll('[data-mode-screen]').forEach(button=>button.addEventListener('click',()=>setScreen(button.dataset.modeScreen,true)));
   document.querySelectorAll('[data-console-mode]').forEach(button=>button.addEventListener('click',()=>setScreen(button.dataset.consoleMode+'-screen',true)));
   document.addEventListener('retro-sleep-expired',()=>{
+    cancelContinuousRetry('radio');cancelContinuousRetry('tv');
     if(currentRadioSource||radioHls||window.retroRadioMechanism?.pending)stopRadio();
     if(hls||youtubePlayer||youtubeHost||video.src||video.currentSrc)stopTV();
   });
@@ -1048,29 +1171,18 @@
     });
     screen.addEventListener('pointercancel',()=>{pageSwipeStart=null;});
   });
-  document.querySelectorAll('[data-preset-mode]').forEach(button=>button.addEventListener('click',()=>{presetMode=button.dataset.presetMode;document.querySelectorAll('[data-preset-mode]').forEach(item=>item.classList.toggle('selected',item===button));renderPresets();}));
-  $('theme-choice').addEventListener('change',event=>applyTheme(event.target.value));
+  const presetTabs=[...document.querySelectorAll('[data-preset-mode]')];
+  for(const button of presetTabs){
+    button.setAttribute('aria-pressed',String(button.dataset.presetMode===presetMode));
+    button.addEventListener('click',()=>{
+      presetMode=button.dataset.presetMode;
+      for(const item of presetTabs){item.classList.toggle('selected',item===button);item.setAttribute('aria-pressed',String(item===button));}
+      renderPresets();
+    });
+  }
   $('visualizer-choice').value=visualizerPattern;
   $('visualizer-choice').addEventListener('change',event=>{visualizerPattern=event.target.value;visualizerMixSince=0;visualizerMixBag=[];try{localStorage.setItem('retrotvra.visualizer-pattern.v5',visualizerPattern);}catch{}stopSoundRays();if(!audio.paused)startSoundRays();});
 
-  $('legacy-theme-enabled').addEventListener('change',event=>setLegacyThemeEnabled(event.target.checked));
-  $('theme-switch-enabled').addEventListener('change',event=>setThemeSwitchEnabled(event.target.checked));
-  // Triple taps on either player screen change its skin. Glow follows the skin.
-  let themeTapBatch={count:0,surface:'',screen:'',timer:0},themePointerStart=null,legacyRadioTapCount=0,legacyRadioTapTimer=0;
-  document.querySelectorAll('#radio-screen,#tv-screen').forEach(screen=>{
-    screen.addEventListener('pointerdown',event=>{themePointerStart={screen:screen.id,id:event.pointerId,x:event.clientX,y:event.clientY};});
-    screen.addEventListener('pointerup',event=>{
-    if(event.pointerType==='mouse'&&event.button!==0)return;
-    const start=themePointerStart;themePointerStart=null;if(!start||start.screen!==screen.id||start.id!==event.pointerId||Math.hypot(event.clientX-start.x,event.clientY-start.y)>18)return;
-    if(event.target.closest('button,a,input,select,textarea,.preset-grid,.explore-results,.remote-panel'))return;
-    const artTap=Boolean(event.target.closest('#radio-art')),surface=artTap?'radio-art':screen.id;
-    if(screen.id==='radio-screen'&&!artTap){clearTimeout(themeTapBatch.timer);themeTapBatch={count:0,surface:'',screen:'',timer:0};if(!legacyThemeEnabled)return;legacyRadioTapCount++;clearTimeout(legacyRadioTapTimer);if(legacyRadioTapCount>=10){legacyRadioTapCount=0;toggleRadioSkin();return;}legacyRadioTapTimer=window.setTimeout(()=>{legacyRadioTapCount=0;},8000);return;}
-    if(screen.id==='radio-screen'&&artTap){legacyRadioTapCount=0;clearTimeout(legacyRadioTapTimer);}
-    if(themeTapBatch.screen!==screen.id||themeTapBatch.surface!==surface||themeTapBatch.count===0){clearTimeout(themeTapBatch.timer);themeTapBatch={count:0,surface,screen:screen.id,timer:0};}
-    themeTapBatch.count++;clearTimeout(themeTapBatch.timer);
-    if(themeTapBatch.count>=3){themeTapBatch={count:0,surface:'',screen:'',timer:0};if(themeSwitchEnabled){const themes=['retro','modern','ultra'];applyTheme(themes[(themes.indexOf(themeMode)+1)%themes.length]);notify(`${themeMode.toUpperCase()} theme`);}return;}
-    themeTapBatch.timer=window.setTimeout(()=>{themeTapBatch={count:0,surface:'',screen:'',timer:0};},650);
-  });});
   document.querySelectorAll('[data-browser-kind]').forEach(button=>button.addEventListener('click',()=>{browserKind=button.dataset.browserKind;onlineRows=[];onlineOffset=0;onlineVisibleLimit=100;onlineHasMore=false;onlineCountries=[];onlineGenres=[];onlineSearchDone=false;document.querySelectorAll('[data-browser-kind]').forEach(item=>item.classList.toggle('selected',item===button));populateExploreFilters();renderExplore();if(browserSource==='online')loadOnlineFilters();}));
   document.querySelectorAll('[data-browser-source]').forEach(button=>button.addEventListener('click',()=>{browserSource=button.dataset.browserSource;document.querySelectorAll('[data-browser-source]').forEach(item=>item.classList.toggle('selected',item===button));$('online-search-row').hidden=browserSource!=='online';onlineRows=[];onlineOffset=0;onlineVisibleLimit=100;onlineHasMore=false;onlineSearchDone=false;populateExploreFilters();renderExplore();if(browserSource==='online')loadOnlineFilters();}));
   $('discover-online').addEventListener('click',()=>discoverOnline());
@@ -1078,13 +1190,15 @@
     $('explore-search').addEventListener('input',renderExplore);$('explore-country').addEventListener('change',()=>browserSource==='online'?discoverOnline():renderExplore());$('explore-genre').addEventListener('change',()=>browserSource==='online'?discoverOnline():renderExplore());$('explore-language').addEventListener('change',()=>{if(browserSource==='online'){onlineVisibleLimit=20;discoverOnline();}else renderExplore();});$('explore-sort').addEventListener('change',renderExplore);
   $('radio-country').addEventListener('change',()=>{renderRadioDisplay();renderPresets();});
   $('tv-country').addEventListener('change',()=>{renderTVRail();renderPresets();});
-  $('radio-play').addEventListener('click',toggleRadio);$('radio-prev').addEventListener('click',()=>stepRadio(-1));$('radio-next').addEventListener('click',()=>stepRadio(1));
+  $('radio-play').addEventListener('click',toggleRadio);
+  $('radio-prev').addEventListener('click',()=>stepRadio(-1));
+  $('radio-next').addEventListener('click',()=>stepRadio(1));
   $('radio-star').addEventListener('click',()=>{const station=radioCurrent();if(station)togglePreset('radio',station);});
 
   $('radio-volume').addEventListener('input',event=>setRadioVolume(event.target.value));
   document.querySelectorAll('[data-radio-volume-action]').forEach(button=>button.addEventListener('click',()=>{const action=button.dataset.radioVolumeAction;if(action==='mute'){audio.muted=!audio.muted;button.classList.toggle('muted',audio.muted);button.setAttribute('aria-label',audio.muted?'Unmute radio':'Mute radio');}else if(action==='up'){audio.muted=false;setRadioVolume(Number($('radio-volume').value)+5);}}));
   $('tv-star').addEventListener('click',()=>{const station=tvCurrent();if(station)togglePreset('tv',station);});
-  $('tv-prev').addEventListener('click',()=>stepTV(-1));$('tv-next').addEventListener('click',()=>stepTV(1));$('tv-prev-name').addEventListener('click',()=>stepTV(-1));$('tv-next-name').addEventListener('click',()=>stepTV(1));$('tv-toggle').addEventListener('click',()=>{if(youtubePlayer?.getPlayerState){if(youtubePlayer.getPlayerState()===1)youtubePlayer.pauseVideo();else youtubePlayer.playVideo();return;}if(!video.src&&!video.currentSrc){const rows=currentRows('tv');if(rows.length)playTV(rows[0]);return;}if(video.paused)video.play().then(()=>{$('tv-toggle').textContent='Ⅱ';}).catch(()=>notify('Press play on the video.'));else video.pause();});
+  $('tv-prev').addEventListener('click',()=>stepTV(-1));$('tv-next').addEventListener('click',()=>stepTV(1));$('tv-prev-name').addEventListener('click',()=>stepTV(-1));$('tv-next-name').addEventListener('click',()=>stepTV(1));$('tv-toggle').addEventListener('click',()=>setTVPlayback());
   document.querySelectorAll('[data-remote]').forEach(button=>button.addEventListener('click',()=>{
     const action=button.dataset.remote;
     if(action==='vol-up'||action==='vol-down'){video.muted=false;video.volume=Math.min(1,Math.max(0,video.volume+(action==='vol-up' ? 0.1 : -0.1)));return;}
@@ -1141,81 +1255,239 @@
   document.addEventListener('fullscreenchange',onTVFullscreenChange);
   document.addEventListener('webkitfullscreenchange',onTVFullscreenChange);
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&tvFullscreenActive){event.preventDefault();exitTVFullscreen();}});
-  document.addEventListener('keydown',event=>{if(event.target.closest('input,select,textarea,button,video,[contenteditable],.preset-drag-handle'))return;if(event.code==='Space'&&['radio-screen','tv-screen'].includes(document.querySelector('.screen.active')?.id)){event.preventDefault();if(!$('radio-screen').classList.contains('active'))$('tv-toggle').click();else toggleRadio();}if(event.key==='ArrowRight'&&$('tv-screen').classList.contains('active'))stepTV(1);if(event.key==='ArrowLeft'&&$('tv-screen').classList.contains('active'))stepTV(-1);});
+  document.addEventListener('keydown',event=>{if(event.target.closest('input,select,textarea,button,video,[contenteditable],.preset-drag-handle'))return;if(event.code==='Space'&&['radio-screen','tv-screen'].includes(document.querySelector('.screen.active')?.id)){event.preventDefault();if(!$('radio-screen').classList.contains('active'))$('tv-toggle').click();else toggleRadio();}});
   // Bluetooth media buttons are delivered through the browser Media Session.
-  // Ignore unsolicited OS/headset Next/Previous commands unless enabled explicitly.
+  // Track navigation can be disabled for remotes that send unwanted skip commands.
   const REMOTE_TRACK_STORE='retrotvra.remote-track-buttons.v1';
-  let remoteTrackEnabled=false;
-  try{remoteTrackEnabled=localStorage.getItem(REMOTE_TRACK_STORE)==='true';}catch{}
+  let remoteTrackEnabled=true;
+  try{remoteTrackEnabled=localStorage.getItem(REMOTE_TRACK_STORE)!=='false';}catch{}
   const remoteTrackSetting=$('remote-track-enabled');
   remoteTrackSetting.checked=remoteTrackEnabled;
   remoteTrackSetting.addEventListener('change',()=>{
+    cancelRemotePress();
     remoteTrackEnabled=remoteTrackSetting.checked;
     try{localStorage.setItem(REMOTE_TRACK_STORE,String(remoteTrackEnabled));}catch{}
   });
+  const remoteTest=$('remote-test-result');
+  let remoteTestCount=0,remoteTestActive=false;
+  const remoteTestLog=[];
+  const registeredRemoteActions=new Set();
+  $('remote-test-start').addEventListener('click',()=>{
+    remoteTestCount=0;remoteTestActive=true;remoteTestLog.length=0;
+    const count=registeredRemoteActions.size;
+    const availability=count?`${count} Media Session handlers available.`:'Keyboard media keys only.';
+    remoteTest.textContent=`Build 4.1.65. Waiting for a command. ${availability}`;
+  });
+  $('settings-dialog').addEventListener('close',()=>{remoteTestActive=false;});
+  function showRemoteCommand(source,command){
+    if(!remoteTestActive)return;
+    const count=++remoteTestCount;
+    remoteTestLog.unshift(`${source} · ${command}`);
+    if(remoteTestLog.length>8)remoteTestLog.pop();
+    remoteTest.textContent=`${count} events received · ${remoteTestLog.join(' | ')}`;
+  }
+  function logRemoteKey(event){
+    if(!remoteTestActive)return;
+    showRemoteCommand(event.type,`key=${JSON.stringify(event.key)} keyCode=${event.keyCode} repeat=${Boolean(event.repeat)} prevented=${event.defaultPrevented} screen=${document.querySelector('.screen.active')?.id||'none'}`);
+  }
   let remoteMedia=audio;
-  let lastRemoteSwitch=0;
+  const REMOTE_DOUBLE_PRESS_MS=450;
+  let remoteClickTimer=null,remoteClickDeadline=0,lastRemoteInput=null;
+  let lastHidTransportTime=-Infinity;
+  function cancelRemotePress(){
+    clearTimeout(remoteClickTimer);
+    remoteClickTimer=null;
+    remoteClickDeadline=0;
+  }
+  function remotePlayerActive(){
+    return $('radio-screen').classList.contains('active')||$('tv-screen').classList.contains('active');
+  }
   function switchRemoteMode(){
-    const now=Date.now();
-    if(now-lastRemoteSwitch<500)return;
-    lastRemoteSwitch=now;
-    const active=document.querySelector('.screen.active')?.id;
-    const toRadio=active==='tv-screen'||(active!=='radio-screen'&&remoteMedia===video);
+    if(!remoteTrackEnabled){showRemoteCommand('Mode switch','Disabled in Settings');return;}
+    const screen=document.querySelector('.screen.active')?.id;
+    if(screen!=='radio-screen'&&screen!=='tv-screen')return;
+    const toRadio=screen==='tv-screen';
     if(tvFullscreenActive)exitTVFullscreen();
     remoteMedia=toRadio?audio:video;
-    setScreen(toRadio?'radio-screen':'tv-screen');
-    // Remote triple-press opens the complete TV player and its controls.
-    // The existing fullscreen helper keeps app fullscreen if native access is denied.
-    if(!toRadio)void toggleTVFullscreen();
+    const rocker=document.querySelector(
+      '#'+screen+' .orange-rocker[data-console-mode="'+(toRadio?'radio':'tv')+'"]'
+    );
+    if(!rocker){showRemoteCommand('Mode switch','Rocker missing on '+screen);return;}
+    rocker.click();
+    showRemoteCommand('Mode switch',screen+' → '+document.querySelector('.screen.active')?.id);
+    syncRemoteMedia();
   }
-  let remoteClicks=0,remoteClickTimer=null;
-  function remotePlayPause(){
-    if(remoteMedia===audio&&window.retroRadioMechanism?.pending){window.retroRadioMechanism.cancel();radioRecovery.stop();return;}
-    remoteClicks++;
-    clearTimeout(remoteClickTimer);
-    if(remoteClicks===3){remoteClicks=0;switchRemoteMode();return;}
+  function remotePlayback(action){
+    if(!remotePlayerActive())return;
+    if(lastPlayerScreen==='tv-screen'){setTVPlayback(action);return;}
+    if(action==='pause'){
+      if(radioRecovery.connecting&&audio.paused){stopRadio();return;}
+      if(window.retroRadioMechanism?.pending){toggleRadio();return;}
+      radioRecovery.stop();audio.pause();
+    }else if(audio.paused){
+      if(audio.src||audio.currentSrc)startRadioAudio().catch(()=>notify('Tap Play in the app to resume the radio.'));
+      else if(!radioHls)toggleRadio();
+    }
+  }
+  function remotePlayPause(source,action){
+    if(!remotePlayerActive())return;
+    if(isDuplicateRemoteCommand(source,'transport'))return;
+    const now=performance.now();
+    if(remoteTrackEnabled&&remoteClickTimer!==null&&now<=remoteClickDeadline){
+      cancelRemotePress();
+      switchRemoteMode();
+      return;
+    }
+    cancelRemotePress();
+    if(action==='toggle'){
+      const playing=lastPlayerScreen==='tv-screen'
+        ?(youtubePlayer?.getPlayerState?youtubePlayer.getPlayerState()===1:!video.paused||tvRecovery.connecting)
+        :!audio.paused||radioRecovery.connecting||window.retroRadioMechanism?.pending;
+      action=playing?'pause':'play';
+    }
+    if(!remoteTrackEnabled){remotePlayback(action);return;}
+    // Resume on the original event so the browser can use its activation.
+    // Wait to pause so a second press can still reach the active Media Session.
+    if(action==='play')remotePlayback('play');
+    remoteClickDeadline=now+REMOTE_DOUBLE_PRESS_MS;
+    showRemoteCommand('Play/Pause',remoteTrackEnabled?'First press · waiting for second press':'Playback only');
     remoteClickTimer=setTimeout(()=>{
-      const clicks=remoteClicks;remoteClicks=0;
-      if(clicks%2){
-        if(remoteMedia.paused){
-          if(!remoteMedia.src&&!remoteMedia.currentSrc){if(remoteMedia===audio)toggleRadio();else $('tv-toggle').click();}
-          else (remoteMedia===audio?startRadioAudio():remoteMedia.play()).catch(()=>{});
-        }else remoteMedia.pause();
-      }
-    },450);
+      remoteClickTimer=null;
+      if(action==='pause')remotePlayback('pause');
+    },REMOTE_DOUBLE_PRESS_MS);
   }
-  function remoteStep(direction){if(!remoteTrackEnabled)return;if(remoteMedia===video)stepTV(direction);else stepRadio(direction);}
+  document.addEventListener('retro-mode-changing',event=>{
+    if(event.detail.screenId!==event.detail.previous)cancelRemotePress();
+  });
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelRemotePress();});
+  function isDuplicateRemoteCommand(source,command){
+    const time=performance.now();
+    // A single press may arrive through both keyboard input and Media Session.
+    if(lastRemoteInput?.command===command&&lastRemoteInput.source!==source&&time-lastRemoteInput.time<50)return true;
+    lastRemoteInput={source,command,time};
+    return false;
+  }
+  function stepRadio(direction){
+    const rows=recoveryRows('radio');
+    if(!rows.length)return;
+    let index=rows.findIndex(station=>stationKey(station)===stationKey(radioCurrent()));
+    if(index<0)index=direction>0?-1:0;
+    index=(index+direction+rows.length)%rows.length;
+    return playRadio(rows[index],false,direction);
+  }
+  function stepActiveChannel(direction,source){
+    const radioActive=$('radio-screen').classList.contains('active');
+    const tvActive=$('tv-screen').classList.contains('active');
+    if(!radioActive&&!tvActive)return;
+    if((tvActive&&!remoteTrackEnabled)||isDuplicateRemoteCommand(source,direction))return;
+    cancelRemotePress();
+    const selected=tvActive?stepTV(direction):stepRadio(direction);
+    const station=tvActive?tvCurrent():radioCurrent();
+    showRemoteCommand(tvActive?'TV':'Radio',selected?'Selected '+(station?.name||'station'):'No stations in active list');
+  }
+  function remoteStop(){
+    if(!remotePlayerActive())return;
+    cancelRemotePress();if(lastPlayerScreen==='tv-screen')stopTV();else stopRadio();}
   function syncRemoteMedia(){
     if(!navigator.mediaSession)return;
-    const station=remoteMedia===video?tvCurrent():radioCurrent();
+    const isRadio=remoteMedia===audio;
+    const station=isRadio?radioCurrent():tvCurrent();
+    const playing=!remoteMedia.paused||(isRadio&&radioRecovery.connecting);
     try{
-      navigator.mediaSession.playbackState=remoteMedia.paused?'paused':'playing';
-      if(typeof MediaMetadata!=='undefined')navigator.mediaSession.metadata=new MediaMetadata({title:station?.name||'COOLmagRaTv',artist:remoteMedia===video?'Live TV':'Radio',album:'COOLmagRaTv'});
+      if(typeof MediaMetadata!=='undefined')navigator.mediaSession.metadata=new MediaMetadata({
+        title:station?.name||'COOLmagRaTv',
+        artist:isRadio?'COOLmag RetroRADtv':'Live TV',
+        album:isRadio?'Live Radio':'COOLmagRaTv'
+      });
     }catch{}
+    try{navigator.mediaSession.playbackState=playing?'playing':'paused';}catch{}
+    // Clear stale position data while a live source has no finite duration.
+    if(isRadio&&!Number.isFinite(audio.duration)){
+      try{navigator.mediaSession.setPositionState?.();}catch{}
+    }
+    if(isRadio&&playing)registerRemoteTrackActions();
   }
   for(const media of [audio,video]){
     media.addEventListener('play',()=>{remoteMedia=media;syncRemoteMedia();});
     media.addEventListener('pause',()=>{if(remoteMedia===media)syncRemoteMedia();});
   }
-  function backgroundMediaAction(action){
-    if(!document.hidden){remotePlayPause();return;}
-    // Clear any pending foreground triple-press before handling lock-screen controls.
-    clearTimeout(remoteClickTimer);remoteClicks=0;
-    if(action==='pause'){if(remoteMedia===audio)window.retroRadioMechanism?.cancel();remoteMedia.pause();return;}
-    if(!remoteMedia.paused)return;
-    if(!remoteMedia.src&&!remoteMedia.currentSrc){
-      if(remoteMedia===audio)toggleRadio();else $('tv-toggle').click();
-    }else (remoteMedia===audio?startRadioAudio():remoteMedia.play()).catch(()=>{});
-  }
-  if(navigator.mediaSession?.setActionHandler){
-    const actions={play:()=>backgroundMediaAction('play'),pause:()=>backgroundMediaAction('pause'),stop:()=>{if(remoteMedia===video)stopTV();else stopRadio();},previoustrack:()=>remoteStep(-1),nexttrack:()=>remoteStep(1)};
-    for(const [action,handler] of Object.entries(actions)){try{navigator.mediaSession.setActionHandler(action,handler);}catch{}}
-  }
-  document.addEventListener('keydown',event=>{
-    if(event.defaultPrevented||event.repeat||event.target.closest('input,select,textarea,[contenteditable]'))return;
-    const actions={MediaPlayPause:remotePlayPause,MediaPlay:remotePlayPause,MediaPause:remotePlayPause,MediaTrackNext:()=>remoteStep(1),MediaTrackPrevious:()=>remoteStep(-1)};
-    if(actions[event.key]){event.preventDefault();actions[event.key]();}
+  audio.addEventListener('playing',()=>{
+    if(!$('radio-screen').classList.contains('active'))return;
+    remoteMedia=audio;
+    syncRemoteMedia();
   });
+  function mediaSessionTransport(action){
+    // Native delivery of the same HID press can arrive after the keyboard callback.
+    if(performance.now()-lastHidTransportTime<600){
+      showRemoteCommand('Media Session','Ignored duplicate HID '+action);
+      return;
+    }
+    remotePlayPause('session',action);
+  }
+  function registerRemoteAction(action,handler){
+    if(!navigator.mediaSession?.setActionHandler)return;
+    try{
+      navigator.mediaSession.setActionHandler(action,()=>{
+        showRemoteCommand('Media Session',action);
+        handler();
+      });
+      registeredRemoteActions.add(action);
+    }catch{}
+  }
+  const previousRemoteTrack=()=>stepActiveChannel(-1,'session'),nextRemoteTrack=()=>stepActiveChannel(1,'session');
+  function registerRemoteTrackActions(){
+    registerRemoteAction('previoustrack',previousRemoteTrack);
+    registerRemoteAction('nexttrack',nextRemoteTrack);
+    registerRemoteAction('seekbackward',previousRemoteTrack);
+    registerRemoteAction('seekforward',nextRemoteTrack);
+  }
+  registerRemoteTrackActions();
+  registerRemoteAction('play',()=>mediaSessionTransport('play'));
+  registerRemoteAction('pause',()=>mediaSessionTransport('pause'));
+  registerRemoteAction('stop',remoteStop);
+  const remoteKeyDirections=new Map([
+    ['MediaTrackNext',1],['MediaTrackPrevious',-1],['MediaFastForward',1],['MediaRewind',-1],
+    ['ChannelUp',1],['ChannelDown',-1],['PageDown',1],['PageUp',-1],['ArrowRight',1],['ArrowLeft',-1],
+    ['BrowserForward',1],['BrowserBack',-1]
+  ]);
+  const remoteKeys=new Map([
+    ['MediaPlay',()=>remotePlayPause('key','play')],['MediaPause',()=>remotePlayPause('key','pause')],
+    ['MediaStop',remoteStop]
+  ]);
+  // Preserve the Windows media codes and the aliases from the older TV player.
+  const legacyRemoteKeys=new Map([
+    ['Play','MediaPlay'],['Pause','MediaPause'],
+    [33,'PageUp'],[34,'PageDown'],[37,'ArrowLeft'],[39,'ArrowRight'],[166,'BrowserBack'],[167,'BrowserForward'],
+    [19,'MediaPause'],[176,'MediaTrackNext'],[177,'MediaTrackPrevious'],[178,'MediaStop'],[179,'MediaPlayPause'],
+    [415,'MediaPlay'],[427,'MediaTrackNext'],[428,'MediaTrackPrevious']
+  ]);
+  window.addEventListener('keyup',logRemoteKey,true);
+  function handleRemoteKeydown(event){
+    logRemoteKey(event);
+    if(event.key==='MediaPlayPause'||event.keyCode===179){
+      if(!event.repeat){
+        lastHidTransportTime=performance.now();
+        remotePlayPause('key','toggle');
+      }
+      return;
+    }
+    if(!remotePlayerActive())return;
+    const knownKey=key=>remoteKeys.has(key)||remoteKeyDirections.has(key);
+    const mediaKey=knownKey(event.key)?event.key:
+      legacyRemoteKeys.get(event.key)||legacyRemoteKeys.get(event.keyCode||event.which);
+    const direction=remoteKeyDirections.get(mediaKey);
+    const control=remoteKeys.get(mediaKey);
+    if(!direction&&!control)return;
+    // The rotary dial focuses a range input; dedicated media keys still control playback.
+    const dedicatedMediaKey=mediaKey.startsWith('Media');
+    if(!dedicatedMediaKey&&(event.defaultPrevented||event.repeat))return;
+    if(!dedicatedMediaKey&&event.target.closest?.('input,select,textarea,[contenteditable]'))return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    if(direction)stepActiveChannel(direction,'key');
+    else control();
+  }
+  window.addEventListener('keydown',handleRemoteKeydown,true);
   video.volume=0.20;updateTVNumbers();
   // Each launch starts at 30%; controls remain adjustable during the session.
   setRadioVolume(20);
@@ -1241,21 +1513,19 @@
         await registration.unregister();
         if(navigator.serviceWorker.controller){
           const url=new URL(location.href);
-          if(url.searchParams.get('local-build')!=='3.0.163'){
-            url.searchParams.set('local-build','3.0.163');location.replace(url.href);
+          if(url.searchParams.get('local-build')!=='4.1.65'){
+            url.searchParams.set('local-build','4.1.65');location.replace(url.href);
           }
         }
       }).catch(()=>{});
     }else navigator.serviceWorker.register('./service-worker.js',{scope:'./',updateViaCache:'none'}).catch(()=>{});
   }
-  applyTheme(themeMode,true);syncThemeSettings();
   $('export-curated-presets').addEventListener('click',()=>{
-    const orderedTV=applyTVOrder(tvPresets);
-    const payload={format:'coolradtv-curated-v1',exportedAt:new Date().toISOString(),radio:radioPresets,tv:orderedTV};
+    const payload={format:'coolradtv-curated-v1',exportedAt:new Date().toISOString(),radio:radioPresets,tv:tvPresets};
     const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');
     link.href=url;link.download='CoolRADtv-curated-presets.json';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
   });
   $('settings-open').addEventListener('click',()=>$('settings-dialog').showModal());
-  $('clear-recent').addEventListener('click',()=>{recentHistory=[];saveStore(RECENT_STORE,recentHistory);renderPresets();notify('Recent history cleared.');});
-  formatClock();setInterval(formatClock,30000);loadRadioNews();setInterval(loadRadioNews,60*60*1000);loadLanguageCatalog();fetchData().finally(()=>{audio.autoplay=false;closeSplash(true);startOpenedPlayer(true);});
+  $('clear-recent').addEventListener('click',()=>{if(!saveStore(RECENT_STORE,[]))return;recentHistory=[];renderPresets();notify('Recent history cleared.');});
+  formatClock();setInterval(formatClock,30000);loadRadioNews();setInterval(loadRadioNews,60*60*1000);loadLanguageCatalog();fetchData().finally(()=>{audio.autoplay=true;closeSplash(true);startOpenedPlayer(true);});
 })();

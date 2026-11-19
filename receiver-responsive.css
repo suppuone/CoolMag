@@ -121,6 +121,14 @@ body.broadcast-console{
  position:static;width:48px;height:44px;min-width:48px;min-height:44px;padding:10px;
 }
 .options-utilities svg{width:22px;height:22px}
+.broadcast-console .theme-toggle{
+ flex:none;min-width:72px;height:30px;padding:0 8px;border:1px solid #807658;border-radius:4px;
+ background:linear-gradient(#373c2e,#23281d);color:#e0cb94;
+ font:700 12px/1 var(--type-ui);text-transform:uppercase;letter-spacing:.05em;
+}
+.broadcast-console .topbar>.theme-toggle{order:2;margin-inline-start:auto}
+.broadcast-console .options-utilities>.theme-toggle{height:44px}
+.broadcast-console .theme-toggle:focus-visible{outline:2px solid currentColor;outline-offset:2px}
 /* Dark brushed steel, with the same proportions on both sides of the cabinet. */
 .broadcast-console .rack-handle{
  --handle-tube-diameter:clamp(26px,3.125vw,40px);
@@ -1023,12 +1031,6 @@ body.broadcast-console{
 .broadcast-console .retro-app>.bottom-nav{grid-template-columns:repeat(3,minmax(0,1fr))}
 .broadcast-console .topbar .mode-switch,
 .broadcast-console .bottom-nav>.nav-item[hidden],
-.broadcast-console #radio-screen .radio-lip-transport>:is(#radio-prev,#radio-next){
- position:absolute!important;display:block!important;
- width:1px!important;height:1px!important;min-width:0!important;min-height:0!important;
- margin:0!important;padding:0!important;border:0!important;overflow:hidden;
- clip-path:inset(50%);pointer-events:none;white-space:nowrap;
-}
 .broadcast-console :is(#radio-screen,#tv-screen) .vfd-window>.vfd-power,
 .broadcast-console #radio-screen .radio-art>.radio-art-caption{display:none!important}
 
@@ -1160,7 +1162,10 @@ body.broadcast-console{
  .broadcast-console #tv-screen .receiver-panel.tv-receiver{
   grid-template-rows:clamp(70px,12dvh,112px) minmax(0,1fr) clamp(62px,11dvh,88px);
  }
- .broadcast-console :is(#radio-screen,#tv-screen) .radio-tuning-card{height:86%}
+ .broadcast-console :is(#radio-screen,#tv-screen) .radio-tuning-card{
+  --desktop-station-card-width:clamp(136px,13vw,224px);
+  flex:0 0 var(--desktop-station-card-width);width:var(--desktop-station-card-width);height:86%;
+ }
 }
 .broadcast-console #radio-screen .receiver-matrix>.large-radio-tuner,
 .broadcast-console #tv-screen .remote-shortcuts>.large-radio-tuner{
@@ -1315,11 +1320,24 @@ body.broadcast-console{
  display:block;width:100%;height:100%;object-fit:cover;border:0;border-radius:0;
  background:transparent;
 }
+.broadcast-console #presets-screen{grid-column:1 / -1;min-width:0}
+.broadcast-console #presets-screen #preset-grid{
+ position:relative;align-content:start;overscroll-behavior-y:contain;overflow-x:hidden;
+ grid-template-columns:repeat(auto-fill,minmax(min(100%,150px),1fr));grid-auto-rows:minmax(152px,auto);
+}
+.broadcast-console #preset-grid>.empty-note{grid-column:1 / -1}
+.broadcast-console #preset-grid .preset-card>small{text-align:center;overflow-wrap:anywhere}
+.broadcast-console #presets-screen .preset-tabs>button{min-width:0;min-height:40px}
+.broadcast-console #presets-screen .preset-tabs>button>b{white-space:nowrap;font-variant-numeric:tabular-nums}
+@media(max-width:480px){
+ .broadcast-console #presets-screen #preset-grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,124px),1fr))}
+}
 .broadcast-console #preset-grid>.preset-card:has(>.preset-drag-handle){padding-block-end:46px}
 .broadcast-console #preset-grid>.preset-card>.preset-drag-handle{
  position:absolute;inset:auto 2px 2px auto;z-index:4;transform:none;
  width:44px;height:44px;min-height:44px;margin:0;
 }
+.broadcast-console .preset-drag-preview :is(.preset-drag-handle,.preset-star){visibility:hidden}
 
 /* Explore controls keep a readable label and a full touch target on compact screens. */
 .broadcast-console #explore-screen :is(.browser-source,.browser-kind){margin:0;gap:6px;flex:none}
@@ -1340,7 +1358,27 @@ body.broadcast-console{
  min-height:44px;padding-inline:8px;font:500 clamp(14px,1.2vw,16px)/1.3 var(--type-ui);
 }
 .broadcast-console #explore-screen .online-search-row[hidden]{display:none}
-.broadcast-console #explore-screen .result-row{min-height:58px}
+.broadcast-console #explore-screen .result-row{
+ min-height:58px;padding:0 4px 0 0;gap:2px;border:1px solid #596353;border-radius:5px;
+ background:linear-gradient(#2a3428,#1c241a);
+}
+.broadcast-console #explore-screen .result-row>button{
+ min-height:54px;border:0;box-shadow:none;background:none;
+}
+.broadcast-console #explore-screen .result-play{
+ flex:1;display:flex;align-items:center;gap:8px;min-width:0;padding:5px 8px;text-align:left;
+}
+.broadcast-console #explore-screen .result-star{flex:none;width:44px;padding:0;font-size:21px}
+.broadcast-console #explore-screen .result-star[aria-pressed="true"]{color:#ffe1a2}
+.broadcast-console #explore-screen .result-row>button:hover{background-color:#ffffff0b}
+
+.broadcast-console :is(#radio-screen,#tv-screen) .radio-tuning-card.tuner-preview{
+ grid-template-columns:max-content auto minmax(0,1fr);
+}
+.broadcast-console :is(#radio-screen,#tv-screen) .radio-tuning-card.tuner-preview>.tuning-card-number{
+ color:#ffe0a3;font:700 9px/1 var(--type-data);letter-spacing:0;
+}
+.broadcast-console :is(#radio-screen,#tv-screen) .radio-tuning-card.tuner-preview>b{grid-column:3}
 .broadcast-console #explore-screen .result-copy b{color:#f0e5c8;font-size:14px;font-weight:700}
 .broadcast-console #explore-screen .result-copy small{font-size:12px}
 @media(max-height:470px){
