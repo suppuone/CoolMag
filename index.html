@@ -16,8 +16,8 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon.svg">
-  <link rel="stylesheet" href="styles.css?v=4.1.3">
-  <link rel="stylesheet" href="receiver-responsive.css?v=4.1.71">
+  <link rel="stylesheet" href="styles.css?v=4.1.6">
+  <link rel="stylesheet" href="receiver-responsive.css?v=4.1.82">
   <!-- Every new opening starts with Flowing Mesh. Settings can change this session. -->
   <script>
   window.retroV4VisualizerDefaultMesh=true;
@@ -25,20 +25,20 @@
   </script>
   <script defer src="https://cdn.jsdelivr.net/npm/hls.js@1.5.18/dist/hls.min.js"></script>
   <script defer src="onboarding.js?v=4.0.112"></script>
-  <script defer src="stream-recovery.js?v=3.0.163"></script>
+  <script defer src="stream-recovery.js?v=4.1.1"></script>
   <script defer src="tone-controls.js?v=4.1.2"></script>
   <script defer src="playback-mechanics.js?v=4.1.16"></script>
   <script defer src="volume-knob.js?v=4.1.9"></script>
   <script defer src="tv-auto-fullscreen.js?v=3.0.163"></script>
   <script defer src="audio-meter.js?v=4.1.13"></script>
-  <script defer src="hardware-feedback.js?v=1.0.3"></script>
+  <script defer src="hardware-feedback.js?v=1.0.9"></script>
   <script defer src="station-artwork.js?v=1.0.1"></script>
-  <script defer src="app.js?v=4.1.32"></script>
+  <script defer src="app.js?v=4.1.35"></script>
 </head>
 <body class="broadcast-console">
 <section class="welcome-splash-v2 tuning-splash" id="welcome-splash-v2" role="dialog" aria-modal="true" aria-labelledby="tuning-title">
     <div class="tuning-stage">
-      <img class="splash-poster" src="assets/station-logos/splash.png" alt="Radio never gets tired — a listener enjoying a portable radio" fetchpriority="high" decoding="async">
+      <img class="splash-poster" src="assets/station-logos/splash.png?v=b800f2fee4b8" alt="Radio never gets tired - a listener enjoying a portable radio" fetchpriority="high" decoding="async">
       <div class="tuning-dial" aria-hidden="true"><div class="tuning-ticks"></div><div class="tuning-orbit"></div><svg class="tuning-mark" viewBox="0 0 80 80"><rect x="16" y="24" width="48" height="35" rx="9"/><path d="m26 24 26-12M24 35h19m-19 7h13M25 51h28"/><circle cx="54" cy="37" r="4"/><path class="tuning-wave" d="M8 31a32 32 0 0 0 0 22m64-22a32 32 0 0 1 0 22"/></svg><span class="tuning-point"></span></div>
       <p class="tuning-eyebrow">A LITTLE ESCAPE. ALWAYS ON.</p>
       <h1 id="tuning-title">CoolMag RetroRADtv v.4.0</h1>
@@ -142,7 +142,7 @@
 
         <div class="fullscreen-titlebar"><span class="crt-osd-channel" id="v4-osd-channel">CH 01</span><b id="fullscreen-channel-name">Choose a channel</b><span id="fullscreen-channel-country">TV</span></div>
         <div class="crt-telemetry"><span class="tv-live-indicator" role="status">STANDBY</span><span class="crt-signal-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span><time class="crt-clock" aria-label="Local time"></time></div>
-        <div class="tv-picture"><video id="tv-video" playsinline controls preload="none"></video><button type="button" class="tv-inline-fullscreen" data-remote="fullscreen" aria-label="Open fullscreen with TV controls" title="Fullscreen with controls" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/></svg></button><div class="tv-placeholder" id="tv-placeholder"><span class="tv-screen-logo">RETRO<span>TV</span></span><small>SELECT A CHANNEL BELOW</small></div></div>
+        <div class="tv-picture"><video id="tv-video" playsinline controls preload="none"></video><div class="tv-placeholder" id="tv-placeholder"><span class="tv-screen-logo">RETRO<span>TV</span></span><small>SELECT A CHANNEL BELOW</small></div></div>
         <div class="fullscreen-side-controls" role="group" aria-label="Fullscreen TV controls"><div class="fullscreen-drag-handle" title="Drag controls" aria-label="Drag controls">⠿</div>
           <button type="button" data-fullscreen-action="normal" aria-label="Zoom out to normal size" title="Zoom out" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6M7 10h6"/></svg></button>
           <button type="button" data-fullscreen-action="zoom" aria-label="Zoom to fill screen" title="Zoom in" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6M7 10h6m-3-3v6"/></svg></button>
@@ -156,11 +156,18 @@
         </div>
         <div class="tv-rail-wrap"><div class="tv-rail" id="tv-rail" aria-label="Swipe or drag to choose a channel"></div></div>
 
+        <div class="tv-picture-transport" role="group" aria-label="TV playback controls">
+          <button type="button" class="small-control" id="tv-prev" aria-label="Previous channel">⏮</button>
+          <button type="button" class="small-control" id="tv-toggle" aria-label="Play">▶</button>
+          <button type="button" class="small-control" id="tv-next" aria-label="Next channel">⏭</button>
+          <button type="button" class="tv-inline-fullscreen" data-remote="fullscreen" aria-label="Open fullscreen with TV controls" title="Fullscreen with controls" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/></svg></button>
+        </div>
+
         <picture class="cabinet-badge">
           <source media="(min-width: 901px)" srcset="assets/station-logos/badge.png" width="1946" height="576">
           <img src="assets/station-logos/small_badge.png" width="418" height="125" alt="COOLmag retroRadioTV" decoding="async">
         </picture>
-      <div class="tv-actions"><button class="small-control" id="tv-prev" aria-label="Previous channel" aria-hidden="true" tabindex="-1">⏮</button><button class="small-control" id="tv-toggle" aria-label="Play">▶</button><button class="small-control" id="tv-next" aria-label="Next channel" aria-hidden="true" tabindex="-1">⏭</button><button type="button" class="mini-star cabinet-favorite" id="tv-star" aria-label="Add channel to presets">☆</button><button type="button" class="cabinet-sleep" data-sleep-open aria-label="Set sleep timer"><span>Zz</span></button><span class="tv-hint">SWIPE OR DRAG TO BROWSE</span></div><details class="module-options"><summary aria-label="Tv station options">OPTIONS</summary><div class="screen-heading tv-screen-heading">
+      <div class="tv-actions"><button type="button" class="mini-star cabinet-favorite" id="tv-star" aria-label="Add channel to presets">☆</button><button type="button" class="cabinet-sleep" data-sleep-open aria-label="Set sleep timer"><span>Zz</span></button><span class="tv-hint">SWIPE OR DRAG TO BROWSE</span></div><details class="module-options"><summary aria-label="Tv station options">OPTIONS</summary><div class="screen-heading tv-screen-heading">
         <span class="eyebrow">TELEVISION</span>
         <div class="tv-heading-tools"><label class="country-picker"><span>COUNTRY</span><select id="tv-country"><option value="all">All countries</option></select></label></div>
 
@@ -247,7 +254,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   // Startup volume belongs to app.js; UI refreshes never reset it.
   if(window.retroV4VisualizerDefaultMesh){$('visualizer-choice').value='mesh';$('visualizer-choice').dispatchEvent(new Event('change',{bubbles:true}));}
   const skinLink=document.querySelector('link[rel="stylesheet"][href^="styles.css"]');
-  const refreshSkin=()=>{if(skinLink&&new URL(skinLink.href).pathname.endsWith('/styles.css')&&new URL(skinLink.href).searchParams.get('v')!=='4.1.3')skinLink.href='styles.css?v=4.1.3';};
+  const refreshSkin=()=>{if(skinLink&&new URL(skinLink.href).pathname.endsWith('/styles.css')&&new URL(skinLink.href).searchParams.get('v')!=='4.1.6')skinLink.href='styles.css?v=4.1.6';};
   if(skinLink)new MutationObserver(refreshSkin).observe(skinLink,{attributes:true,attributeFilter:['href']});
   refreshSkin();
   const text=(node,value)=>{if(node&&node.textContent!==String(value))node.textContent=String(value);};
@@ -255,6 +262,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   const radioLiveIndicator=document.querySelector('.radio-live-indicator');
   const radioMonitorTitle=document.querySelector('.radio-monitor-title');
   const tvLiveIndicator=document.querySelector('.tv-live-indicator');
+  const muteControls=[
+    [document.querySelector('#radio-screen [data-console-mute]'),audio],
+    [document.querySelector('#tv-screen [data-console-mute]'),video]
+  ];
   // Keep the original controls and event hooks; put mute at the right end.
   for(const deck of document.querySelectorAll('.radio-tone-bank,.tv-hifi-deck')){
     const mute=deck.querySelector('[data-console-mute]');if(mute)deck.append(mute);
@@ -445,6 +456,11 @@ document.addEventListener('DOMContentLoaded',()=>{
   function sync(){
     placeCompactUtilities();
     placeRadioNewsTicker();
+    for(const [button,media] of muteControls){
+      if(!button)continue;
+      button.setAttribute('aria-pressed',String(media.muted));
+      text(button,media.muted?'MUTED':'MUTE');
+    }
     const cards=[...$('radio-station-strip').querySelectorAll('[data-radio-shortcut]')];
     const selected=cards.findIndex(card=>card.classList.contains('active'));
     if(selected>=0&&selected!==lastRadioPreset){lastRadioPreset=selected;paintBank('radio',true);}

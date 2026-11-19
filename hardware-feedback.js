@@ -187,22 +187,16 @@
     if (button?.matches('#radio-prev,#radio-next,#tv-prev,#tv-next,[data-radio-shortcut],[data-remote-preset],[data-fullscreen-action="previous"],[data-fullscreen-action="next"],[data-remote="channel-up"],[data-remote="channel-down"]')) SoundFX.staticBurst();
   }, true);
 
-  const transitions = new WeakMap();
+  let rockerTimer;
   document.addEventListener('retro-mode-changing', ({detail:{previous, screenId}}) => {
-    if (previous === screenId || !['radio-screen', 'tv-screen'].includes(previous) ||
-        !['radio-screen', 'tv-screen'].includes(screenId) || motion.matches) return;
-    const display = document.querySelector('#' + screenId + ' .crt-module');
-    const rocker = document.querySelector('#' + screenId + ' .orange-rocker');
-    clearTimeout(transitions.get(display));
-    display.classList.remove('crt-switching');
-    rocker.classList.remove('rocker-flipping');
-    void display.offsetWidth;
-    display.classList.add('crt-switching');
+    const playerModes = ['radio-screen', 'tv-screen'];
+    if (previous === screenId || !playerModes.includes(previous) || !playerModes.includes(screenId) || motion.matches) return;
+    const rocker = document.getElementById(screenId)?.querySelector('.orange-rocker');
+    if (!rocker || document.fullscreenElement || document.body.classList.contains('tv-fullscreen-open')) return;
+    clearTimeout(rockerTimer);
+    document.querySelector('.rocker-flipping')?.classList.remove('rocker-flipping');
     rocker.classList.add('rocker-flipping');
-    transitions.set(display, setTimeout(() => {
-      display.classList.remove('crt-switching');
-      rocker.classList.remove('rocker-flipping');
-    }, 300));
+    rockerTimer = setTimeout(() => rocker.classList.remove('rocker-flipping'), 300);
   });
 
   document.addEventListener('DOMContentLoaded', () => {

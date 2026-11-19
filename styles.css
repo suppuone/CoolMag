@@ -424,9 +424,16 @@ body.tv-fullscreen-open .retro-app{visibility:hidden}body.tv-fullscreen-open{pad
 .vinyl-disc{position:absolute;inset:0;border-radius:50%;border:2px solid #44483d;background:conic-gradient(from 30deg,#060806,#32372f 24deg,#0a0e09 50deg,#080b07 155deg,#454b3e 184deg,#0a0d08 222deg,#060806);box-shadow:inset 0 0 0 3px #070a06,inset 0 0 0 5px #696f4f44,inset 0 0 18px #000;animation:vinyl-turn 7s linear infinite;animation-play-state:var(--artwork-play-state)}
 .vinyl-grooves{position:absolute;inset:8px;border-radius:50%;background:repeating-radial-gradient(circle,transparent 0 2px,#b8c0931a 2px 3px,#0006 3px 4px);box-shadow:inset 0 0 0 1px #a1aa6f22}
 .vinyl-disc::after{content:"";position:absolute;inset:5px;border-radius:50%;background:conic-gradient(transparent 0 27deg,#ffffff1a 31deg,transparent 45deg 202deg,#f2e4a31c 209deg,transparent 220deg);pointer-events:none}
-.vinyl-label{position:absolute;inset:30%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px;border:2px solid #d5b879;border-radius:50%;background:radial-gradient(circle at 36% 25%,#d3a95d,#8e602d 75%);color:#181e11;box-shadow:inset 0 1px #fff6,0 0 0 3px #0b1009;overflow:hidden}
-.vinyl-label .artwork-logo{width:34%;height:34%;border-radius:50%!important;background:#efebd7!important}
-.vinyl-label .artwork-station-name{font-size:clamp(7px,3cqh,15px);max-width:100%}.vinyl-label small{font:500 clamp(4px,1.6cqh,8px)/1 var(--type-data);letter-spacing:.02em;white-space:nowrap}
+.vinyl-label{
+ position:absolute;inset:30%;display:grid;place-items:center;
+ grid-template: minmax(0,42fr) minmax(0,18fr) minmax(0,25fr) minmax(0,15fr) / minmax(0,1fr);
+ padding:6px;border:2px solid #d5b879;border-radius:50%;
+ background:radial-gradient(circle at 36% 25%,#d3a95d,#8e602d 75%);color:#181e11;
+ box-shadow:inset 0 1px #fff6,0 0 0 3px #0b1009;overflow:hidden;
+}
+.vinyl-label .artwork-logo{grid-area:1 / 1;width:34%;aspect-ratio:1;max-height:100%;border-radius:50%!important;background:#efebd7!important}
+.vinyl-label .artwork-station-name{grid-area:3 / 1;font-size:clamp(7px,3cqh,15px);max-width:82%}
+.vinyl-label small{grid-area:4 / 1;font:500 clamp(4px,1.6cqh,8px)/1 var(--type-data);letter-spacing:.02em;white-space:nowrap}
 .vinyl-spindle{width:5px;height:5px;flex:none;border:1px solid #202716;border-radius:50%;background:#abb59c;box-shadow:0 1px 2px #0009}
 .vinyl-arm{position:absolute;right:-4%;top:-1%;width:7%;height:61%;border-radius:5px;background:linear-gradient(90deg,#1d2517,#a4ae91 45%,#d5d5b2 52%,#556344 74%,#1b2511);box-shadow:2px 4px 5px #000b;transform:rotate(-25deg);transform-origin:50% 8%}
 .vinyl-arm::before{content:"";position:absolute;left:50%;top:0;transform:translateX(-50%);width:180%;aspect-ratio:1;border:2px solid #677452;border-radius:50%;background:radial-gradient(circle,#a3ae8f,#34422a)}
@@ -463,7 +470,7 @@ body.tv-fullscreen-open .retro-app{visibility:hidden}body.tv-fullscreen-open{pad
 @media(max-width:900px) and (orientation:portrait){
  .broadcast-console .radio-art .receiver-station-artwork{inset:17px 10px 7px;top:17px;left:10px}
  .broadcast-console .radio-art-caption h1{font-size:9px}
- .vinyl-label{gap:2px;padding:3px}.radio-cassette{border-width:1px;border-radius:6px}.cassette-window{border-width:1px}
+ .vinyl-label{padding:3px}.radio-cassette{border-width:1px;border-radius:6px}.cassette-window{border-width:1px}
  .cassette-reel{border-width:2px}.tower-station-label{gap:4px;padding:3px}.tower-station-label small{letter-spacing:0}
 }
 @media(prefers-reduced-motion:reduce){.vinyl-disc,.cassette-reel i,.tower-waves i{animation:none!important}.tower-waves i{opacity:.25;transform:scale(.8)}}
@@ -1826,11 +1833,11 @@ body.broadcast-console{padding-inline:58px}
  text-shadow:0 1px 0 #fff0b3c9,0 -1px 1px #3f2b1480;
 }
 
-/* 4.0.100 - TV pointer extends from the gold cap towards its numbered detent. */
+/* The TV detent pointer overlaps the outer brass ring of the knob. */
 .broadcast-console #tv-screen .station-tuner-dial::before{
  content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
- background:linear-gradient(90deg,#91651f,#ffedaa 49%,#c3953d 55%,#81551a);
- clip-path:polygon(50% 16%,55% 23%,52% 23%,52% 34%,48% 34%,48% 23%,45% 23%);
+ background:linear-gradient(180deg,transparent 21.5%,#603d1d66 24%),linear-gradient(90deg,#92642a 46%,#d7ad56 48.7%,#ffe8a0 50%,#bc883a 51.4%,#7f551f 54%);
+ clip-path:polygon(49.5% 16%,50.5% 16%,54% 22.6%,53% 24%,47% 24%,46% 22.6%);
  transform:rotate(var(--station-tuner-angle,0deg));transform-origin:center;
  transition:transform .12s ease-out;
 }

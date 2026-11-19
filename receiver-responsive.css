@@ -90,6 +90,11 @@ body.broadcast-console{
 .broadcast-console .epaper-calendar span{font-size:clamp(11px,.8vw,15px)}
 .broadcast-console .orange-rocker{height:60px;min-height:44px;max-height:60px}
 .broadcast-console .chrome-mute{height:28px;min-height:28px;font-size:10px}
+.broadcast-console .chrome-mute[data-console-mute][aria-pressed="true"]{
+ background:linear-gradient(#6c1317,#9c282a);color:#fff1e9;
+ box-shadow:inset 1px 2px 4px #37070bd9,inset 0 -1px 1px #ee77745c,0 1px 2px #0008;
+ transform:translateY(1px);
+}
 .broadcast-console #radio-screen .receiver-matrix,.broadcast-console #tv-screen .remote-shortcuts{
  display:grid;grid-template-rows:16px minmax(0,1fr) 44px;
  gap:4px;min-height:0;padding:7px;
@@ -437,9 +442,9 @@ body.broadcast-console{
 .broadcast-console .volume-dial.thumbwheel-dial::before,
 .broadcast-console .volume-dial.thumbwheel-dial::after{content:none;display:none}
 .broadcast-console .thumbwheel-dial>.indicator-pointer{
- position:absolute;top:-10px;left:50%;transform:translateX(-50%);
+ position:absolute;bottom:0;left:50%;transform:translateX(-50%);
  width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;
- border-top:8px solid #d4a54a;filter:drop-shadow(0 1px 2px #000e);z-index:6;pointer-events:none;
+ border-bottom:8px solid #d4a54a;filter:drop-shadow(0 1px 2px #000e);z-index:6;pointer-events:none;
 }
 .broadcast-console .thumbwheel-dial>.steel-thumb-wheel{
  position:absolute;left:8px;right:8px;top:50%;transform:translateY(-50%);
@@ -679,7 +684,7 @@ body.broadcast-console{
 .broadcast-console .volume-knob-control>.tone-label{
  grid-column:1 / -1;grid-row:1;justify-self:stretch;align-self:center;
  width:100%;margin:0;padding:0 38px;text-align:center;
- font:700 clamp(12px,.88vw,16px)/16px var(--type-instrument);
+ font:700 calc(clamp(12px,.88vw,16px) + 2pt)/1 var(--type-instrument);
  letter-spacing:.13em;text-transform:uppercase;color:#d8bc80;
  text-shadow:0 1px 1px #07100bc9,0 -1px #ffffff12;white-space:nowrap;
 }
@@ -701,7 +706,7 @@ body.broadcast-console{
 }
 @media(max-width:900px){
  .broadcast-console .volume-knob-control>.tone-label{
-  padding-inline:32px;font-size:clamp(10px,2.8vw,12px);line-height:16px;letter-spacing:.1em;
+  padding-inline:32px;font-size:calc(clamp(10px,2.8vw,12px) + 2pt);letter-spacing:.1em;
  }
  .broadcast-console #radio-volume-knob-value,.broadcast-console #v4-tv-volume-value{font-size:11px;line-height:16px}
  .broadcast-console .large-radio-tuner::after{font-size:12px;line-height:12px;letter-spacing:.12em}
@@ -710,19 +715,6 @@ body.broadcast-console{
  .broadcast-console .large-radio-tuner::after{font-size:10px;line-height:10px}
 }
 
-/* 4.1.25: fading in-picture fullscreen opens the complete TV control shell. */
-.broadcast-console #tv-display .tv-inline-fullscreen{
- position:absolute;right:10px;bottom:42px;z-index:20;
- display:grid;place-items:center;width:44px;min-width:44px;height:44px;min-height:44px;padding:10px;
- border:1px solid #ffffff88;border-radius:5px;background:#10161399;color:#fff;
- box-shadow:0 2px 5px #0009;opacity:0;pointer-events:none;transition:opacity .22s ease;
-}
-.broadcast-console #tv-display.inline-controls-visible .tv-inline-fullscreen,
-.broadcast-console #tv-display:not(.is-playing) .tv-inline-fullscreen,
-.broadcast-console #tv-display .tv-inline-fullscreen:focus-visible{
- opacity:1;pointer-events:auto;
-}
-.broadcast-console #tv-display.cinema-mode .tv-inline-fullscreen{display:none}
 .broadcast-console #tv-video::-webkit-media-controls-fullscreen-button{display:none}
 
 .broadcast-console #radio-screen .crt-module>.radio-news-ticker{display:none}
@@ -908,8 +900,7 @@ body.broadcast-console{
 }
 .broadcast-console :is(#radio-screen,#tv-screen) .station-tuner-dial:active{cursor:grabbing}
 #station-tuner-input,#tv-station-tuner-input{cursor:inherit}
-.broadcast-console .large-radio-tuner .station-tuner-dial::after,
-.broadcast-console #tv-screen .station-tuner-dial::before{content:none}
+.broadcast-console .large-radio-tuner .station-tuner-dial::after{content:none}
 .station-knob{
  position:absolute;inset:0;pointer-events:none;
 }
@@ -951,6 +942,7 @@ body.broadcast-console{
  position:absolute;top:8%;left:46%;width:8%;height:4%;min-height:1px;
  border-radius:2px;background:#e63929;box-shadow:0 0 5px #e63929d9;
 }
+.broadcast-console #tv-screen .station-knob-indicator{display:none}
 .tv-selector-numbers{z-index:1}
 
 /* Measure the actual control bays so the hardware fits the available width and height. */
@@ -982,7 +974,7 @@ body.broadcast-console{
 }
 @container volume-controls (max-width:140px){
  .broadcast-console .volume-knob-control>.tone-label{
-  grid-column:1;padding:0;text-align:left;font-size:clamp(9px,8.5cqw,12px);
+  padding:0;font-size:calc(clamp(9px,8.5cqw,12px) + 2pt);letter-spacing:.06em;
  }
  .broadcast-console #radio-volume-knob-value,.broadcast-console #v4-tv-volume-value{font-size:11px}
 }
@@ -1031,7 +1023,7 @@ body.broadcast-console{
 .broadcast-console .retro-app>.bottom-nav{grid-template-columns:repeat(3,minmax(0,1fr))}
 .broadcast-console .topbar .mode-switch,
 .broadcast-console .bottom-nav>.nav-item[hidden],
-.broadcast-console :is(#radio-screen .radio-lip-transport,#tv-screen .tv-actions)>:is(#radio-prev,#radio-next,#tv-prev,#tv-next){
+.broadcast-console #radio-screen .radio-lip-transport>:is(#radio-prev,#radio-next){
  position:absolute!important;display:block!important;
  width:1px!important;height:1px!important;min-width:0!important;min-height:0!important;
  margin:0!important;padding:0!important;border:0!important;overflow:hidden;
@@ -1098,6 +1090,38 @@ body.broadcast-console{
 .broadcast-console :is(#radio-screen .radio-display>.radio-lip-transport,#tv-screen #tv-display:not(.cinema-mode,:fullscreen)>.tv-actions){
  position:relative;inset:auto;grid-area:3 / 2;align-self:center;justify-content:center;height:44px;
 }
+
+/* The TV transport and bezel utilities share the row below the picture. */
+.broadcast-console #tv-screen #tv-display:not(.cinema-mode,:fullscreen){
+ grid-template-columns:minmax(0,1fr) max-content max-content minmax(0,1fr);
+}
+.broadcast-console #tv-screen #tv-display:not(.cinema-mode,:fullscreen)>.tv-actions{grid-column:3}
+.broadcast-console #tv-screen #tv-display:not(.cinema-mode,:fullscreen)>.cabinet-badge{grid-column:4}
+.broadcast-console #tv-display:is(.cinema-mode,:fullscreen)>.tv-picture-transport{display:none}
+.broadcast-console #tv-display>.tv-picture-transport{
+ grid-area:3 / 2;align-self:center;display:flex;justify-content:center;align-items:center;height:44px;min-width:0;
+}
+.broadcast-console #tv-display>.tv-picture-transport>button{
+ position:relative;display:grid;place-items:center;width:44px;min-width:0;height:100%;min-height:0;
+ padding:0;border:0;border-radius:0;background:none;box-shadow:none;color:#e6dec1;font-size:0;touch-action:manipulation;
+}
+.broadcast-console #tv-display>.tv-picture-transport>button:is(:hover,:active){color:#ffe3a1}
+.broadcast-console #tv-display>.tv-picture-transport>button:focus-visible{outline:none;box-shadow:inset 0 -2px #d6b872}
+.broadcast-console #tv-display>.tv-picture-transport>.small-control::before{
+ content:"";position:absolute;inset:0;margin:auto;width:19px;height:19px;background:currentColor;
+ mask:var(--tv-transport-icon) center / contain no-repeat;
+}
+.broadcast-console #tv-display .tv-picture-transport>:is(#tv-prev,#tv-next){
+ --tv-transport-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m14.5 4-8 8 8 8' fill='none' stroke='black' stroke-width='2'/%3E%3C/svg%3E");
+}
+.broadcast-console #tv-display .tv-picture-transport>#tv-next::before{transform:scaleX(-1)}
+.broadcast-console #tv-display .tv-picture-transport>#tv-toggle{
+ --tv-transport-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 4v16l13-8z'/%3E%3C/svg%3E");
+}
+.broadcast-console #tv-display .tv-picture-transport>#tv-toggle[aria-label="Pause"]{
+ --tv-transport-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 4h4v16H6zM14 4h4v16h-4z'/%3E%3C/svg%3E");
+}
+.broadcast-console #tv-display .tv-picture-transport>.tv-inline-fullscreen>svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2}
 
 .broadcast-console :is(#radio-screen,#tv-screen) .crt-telemetry{
  position:absolute;z-index:7;pointer-events:none;
@@ -1186,11 +1210,21 @@ body.broadcast-console{
  .broadcast-console :is(#radio-screen,#tv-screen) .vfd-utilities{gap:2px}
  .broadcast-console :is(#radio-screen,#tv-screen) .vfd-utilities>button{height:20px;min-height:20px}
  .broadcast-console :is(#radio-screen,#tv-screen) .volume-knob-control{max-width:none}
+ .broadcast-console :is(#radio-screen,#tv-screen) .volume-knob-control:has(>.thumbwheel-dial){translate:0 -5px}
  .broadcast-console :is(#radio-screen,#tv-screen) .orange-rocker{width:44px;min-width:44px}
 }
 @media(max-width:900px) and (orientation:portrait){
  .broadcast-console #radio-screen.active,.broadcast-console #tv-screen.active{
-  grid-template-rows:minmax(0,.4fr) minmax(0,.6fr);
+  grid-template-rows:minmax(0,.43fr) minmax(0,.57fr);
+ }
+ .broadcast-console #radio-screen .receiver-panel.radio-receiver,
+ .broadcast-console #tv-screen .receiver-panel.tv-receiver{
+  grid-template-rows:clamp(48px,10dvh,82px) minmax(0,1fr) clamp(54px,8.5dvh,66px);
+ }
+}
+@media(max-width:900px) and (orientation:portrait) and (min-height:620px){
+ .broadcast-console #radio-screen.active,.broadcast-console #tv-screen.active{
+  grid-template-rows:minmax(0,.46fr) minmax(0,.54fr);
  }
 }
 @media(max-width:900px) and (orientation:landscape){
@@ -1250,7 +1284,20 @@ body.broadcast-console{
 @media(max-width:340px){
  .broadcast-console #radio-screen .radio-display>.cassette-counter{width:42px;padding-inline:1px;gap:1px}
 }
+@media(max-width:900px){
+ .broadcast-console #tv-screen #tv-display:not(.cinema-mode,:fullscreen){
+  grid-template-columns:auto max-content max-content minmax(0,1fr);column-gap:3px;
+ }
+ .broadcast-console #tv-display>.tv-picture-transport>button,
+ .broadcast-console #tv-screen #tv-display:not(.cinema-mode,:fullscreen)>.tv-actions>:is(.cabinet-favorite,.cabinet-sleep){
+  width:clamp(26px,7.2vw,40px);min-width:0;
+ }
+ .broadcast-console #tv-display>.cabinet-badge{column-gap:clamp(2px,.8vw,5px)}
+}
 @media(max-width:700px) and (orientation:landscape){
+ .broadcast-console #tv-display>.tv-picture-transport>button,
+ .broadcast-console #tv-screen #tv-display:not(.cinema-mode,:fullscreen)>.tv-actions>:is(.cabinet-favorite,.cabinet-sleep){width:24px}
+ .broadcast-console #tv-screen #tv-display:not(.cinema-mode,:fullscreen)>.module-options:not([open])>summary{min-width:42px;font-size:9px}
  .broadcast-console #radio-screen .radio-display{grid-template-columns:minmax(88px,1fr) auto minmax(0,1fr)}
  .broadcast-console #radio-screen .radio-display>.cassette-counter{width:42px;padding-inline:1px;gap:1px}
  .broadcast-console #radio-screen .radio-display>.module-options:not([open])>summary{min-width:42px;font-size:9px}
@@ -1300,25 +1347,6 @@ body.broadcast-console{
  .broadcast-console #explore-screen.active{overflow-y:auto}
  .broadcast-console #explore-screen .explore-results{flex:1 0 130px}
 }
-
-.broadcast-console .crt-module.crt-switching:not(.cinema-mode,:fullscreen){
- animation:crt-mode-flash 280ms cubic-bezier(.35,.05,.25,1) both;
- transform-origin:50% 50%;
-}
-.broadcast-console #tv-display.crt-switching:not(.cinema-mode,:fullscreen)>.tv-rail-wrap{position:relative}
-.broadcast-console .crt-switching>#radio-art::after,
-.broadcast-console #tv-display.crt-switching:not(.cinema-mode,:fullscreen)>.tv-rail-wrap::after{
- content:"";position:absolute;inset:0;z-index:10;pointer-events:none;
- background:repeating-linear-gradient(0deg,#141c153d 0 1px,transparent 1px 3px);
- animation:receiver-scan-fade 280ms ease-out both;
-}
-@keyframes crt-mode-flash{
- 0%{transform:scaleY(.78);opacity:.35;filter:brightness(.85)}
- 24%{transform:scaleY(.03);opacity:.94;filter:brightness(2.4)}
- 44%{transform:scaleY(.08);opacity:.82;filter:brightness(1.7)}
- 100%{transform:scaleY(1);opacity:1;filter:none}
-}
-@keyframes receiver-scan-fade{from{opacity:.9}to{opacity:0}}
 
 /* Recessed two-position Radio / TV rocker. The housing stays fixed as the paddle pivots. */
 .broadcast-console :is(#radio-screen,#tv-screen) .receiver-panel>:is(.radio-tone-bank,.tv-hifi-deck){
@@ -1372,10 +1400,7 @@ body.broadcast-console{
  100%{transform:rotateX(var(--rocker-angle))}
 }
 @media(prefers-reduced-motion:reduce){
- .broadcast-console .radio-display:has(.radio-live-indicator.is-live) .radio-art::before,
- .broadcast-console .crt-module.crt-switching:not(.cinema-mode,:fullscreen),
- .broadcast-console .crt-switching>#radio-art::after,
- .broadcast-console #tv-display.crt-switching:not(.cinema-mode,:fullscreen)>.tv-rail-wrap::after{animation:none}
+ .broadcast-console .radio-display:has(.radio-live-indicator.is-live) .radio-art::before{animation:none}
  .broadcast-console .hardware-filter-bar .hardware-filter{transition:none}
  .broadcast-console .orange-rocker .rocker-paddle{animation:none;transition:none}
 }

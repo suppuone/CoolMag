@@ -20,7 +20,8 @@
     current:()=>kind==='radio'?radioCurrent():tvCurrent(),
     key:station=>kind==='radio'?stationKey(station):station.url,
     rows:()=>currentRows(kind),
-    play:(station,automatic)=>kind==='radio'?playRadio(station,automatic):playTV(station,automatic),notify
+    play:(station,automatic)=>kind==='radio'?playRadio(station,automatic):playTV(station,automatic),notify,
+    onInitialTimeout:kind==='radio'?()=>{stopRadio();$('radio-status').textContent='STREAM COULD NOT START - TAP TO RETRY';}:undefined
   });
   const radioRecovery=createStreamRecovery(audio,recoveryOptions('radio'));
   const tvRecovery=createStreamRecovery(video,recoveryOptions('tv'));
