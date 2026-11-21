@@ -18,6 +18,8 @@ and root folder in Pages settings. No build command or package installation is n
 Keep the assets folder and supporting scripts with the entry files.
 
 - `index.html`: player interface and accessible hide/restore buttons in Settings.
+- `123index.html`: optional compact Lite receiver. Use the **Lite version** link in the
+  full player to open it in the same tab; use **Full version** or browser Back to return.
 - `styles.css`: canonical stylesheet; `style.css` is an older-link compatibility shim.
 - `app.js`: station selection, player adapters, discovery and local preferences.
 - preset-defaults.js is the single bundled default list for direct file opening and web hosting. Genre filters use the saved presets.
